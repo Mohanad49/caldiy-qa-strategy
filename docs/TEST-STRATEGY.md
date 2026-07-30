@@ -1,0 +1,198 @@
+# Cal.diy Test Strategy
+
+## Document purpose
+
+This strategy defines the quality risks, test boundaries, evidence, and release
+criteria for an independent QA engagement against Cal.diy. It is written for a
+product stakeholder deciding what confidence the engagement can provide and for
+an engineer who must implement the tests without quietly changing that scope.
+
+This document is a strategy, not evidence that the planned automation already
+exists. The repository README is the source of truth for delivery status.
+
+## Product and version boundary
+
+The system under test is the public `calcom/cal.diy` repository at tag `v6.2.0`,
+commit `1c193cca8682b33b9866c792186033f7ef886682`. It is run from the immutable
+upstream container identified in `infra/compose.yml`.
+
+The tag predates the April 2026 split in which Cal.com moved its production
+codebase to a private repository and renamed the public repository Cal.diy.
+Results from this engagement describe this snapshot only. They must not be
+presented as coverage of the current hosted Cal.com service.
+
+The product capabilities relevant to this engagement are:
+
+- host identity, event types, schedules, and availability;
+- public slot discovery and guest booking;
+- booking rescheduling and cancellation;
+- booking lifecycle notifications captured by a local SMTP sink;
+- rendering of booking information for participants in different timezones.
+
+## Quality objectives
+
+The engagement is designed to answer these questions, in order:
+
+1. Does the same intended instant remain correct across host, booker, API,
+   persisted data, confirmation page, and notification?
+2. Can concurrent users create more bookings than the slot capacity permits?
+3. Do rescheduling and cancellation update every observable representation of a
+   booking without leaving stale availability or notifications?
+4. Can a user see or modify availability and booking information they do not own?
+5. Can a keyboard or assistive-technology user complete the public booking flow?
+6. Does the self-hosted snapshot remain usable under a measured, local workload?
+
+## Risk model
+
+Likelihood and impact are scored from 1 (low) to 5 (very high). The score is
+`likelihood × impact`; it determines implementation order, not defect severity.
+A rare data-integrity failure may still be a critical defect.
+
+| Priority | Risk | Likelihood | Impact | Score | Primary evidence planned |
+|---:|---|---:|---:|---:|---|
+| 1 | Timezone or DST conversion changes the intended booking instant | 4 | 5 | 20 | API boundaries plus timezone-focused E2E |
+| 2 | Concurrent requests overbook a capacity-one slot | 3 | 5 | 15 | API concurrency test and k6 contention gate |
+| 3 | Reschedule or cancellation leaves inconsistent state | 3 | 4 | 12 | API lifecycle tests, E2E, mail assertions |
+| 4 | Confirmation or lifecycle notification is missing or wrong | 3 | 4 | 12 | Mailpit assertions correlated by booking ID |
+| 5 | Availability or booking data leaks across users | 2 | 5 | 10 | Authentication and authorization negatives |
+| 6 | Public booking flow is inaccessible | 3 | 3 | 9 | axe-core plus keyboard journey |
+| 7 | Availability or booking latency degrades under load | 3 | 3 | 9 | k6 thresholds calibrated to local Docker |
+
+Timezone and DST rank above payments because time conversion is intrinsic to
+every booking in this target, while real payment-provider integration is outside
+the controlled environment and would introduce third-party credentials and
+behavior. That is a scope decision, not a claim that payments are low risk.
+
+The detailed failure model for priority 1 is in `docs/RISK-ANALYSIS.md`.
+
+## Test levels and ownership
+
+| Level | Ownership in this engagement | Boundary |
+|---|---|---|
+| Upstream unit tests | Cal.diy maintainers | Read as context; not copied or counted as portfolio coverage |
+| API and integration | This repository, Phase 2 | Public API v2 behavior, persistence-visible outcomes, auth, schema, cleanup |
+| Browser E2E | This repository, Phase 3 | A small set of high-value journeys and timezone presentation |
+| BDD acceptance | This repository, Phase 3 | Business-readable booking, reschedule, and cancel scenarios only |
+| Accessibility and visual | This repository, Phase 3 | Public booking surface across agreed viewports |
+| Performance | This repository, Phase 4 | Availability reads and booking contention in local Docker |
+| Observability and reporting | This repository, Phase 5 | Allure evidence and longitudinal TestPulse ingestion |
+
+BDD will not wrap low-level API, boundary, schema, or visual tests. Step
+definitions will reuse the Playwright fixtures and page objects rather than
+forming a second automation framework.
+
+## Environments
+
+### Local controlled environment
+
+Phase 1 supplies Cal.diy, PostgreSQL, and Mailpit with immutable image digests.
+The host exposes only the web and Mailpit HTTP ports on loopback. PostgreSQL is
+not published to the host. Cal.diy telemetry is disabled.
+
+The environment is the reference for development and deterministic functional
+checks. It is not a production topology, security baseline, or production SLO
+environment.
+
+### CI environment — planned
+
+Later phases will use the same SUT tag and database major version on an amd64
+runner. Each job will receive isolated data. CI will retain evidence only on
+failure and will not receive credentials for a real Cal.com or calendar account.
+
+### Current-upstream confirmation — defect triage only
+
+Before filing an upstream issue, a finding from `v6.2.0` must be searched for as
+a duplicate and reproduced against the current public Cal.diy code. A finding
+that exists only on this historical snapshot is documented locally as a
+compatibility result, not filed as a current product defect.
+
+## Test data strategy
+
+- Bootstrap uses Cal.diy's official development seed. It does not insert custom
+  SQL into an application schema owned by the SUT.
+- `pro@example.com` and `/pro/30min` are the Phase 1 smoke fixtures. Their public
+  development password is local test data, not a deployable secret.
+- Phase 2 factories will create prerequisites through supported APIs wherever
+  possible and register cleanup immediately after creation.
+- Data names will include the CI run and worker identity. No test may depend on
+  another test's order, residue, or cleanup.
+- Destructive reset is limited to the named Compose volumes and requires the
+  literal confirmation `caldiy-qa-strategy`.
+- Notification assertions will query Mailpit and correlate a message to a unique
+  booking identifier instead of assuming inbox order.
+
+## Planned tooling
+
+These choices describe future implementation; they are not yet delivered:
+
+- Python, pytest, and httpx for API behavior, factories, and independent timezone
+  oracles;
+- versioned JSON Schema files for deliberate response contracts;
+- Playwright and TypeScript for browser automation, fixtures, traces, and visual
+  snapshots;
+- `@cucumber/cucumber` for the three business-readable lifecycle journeys only;
+- axe-core for accessibility checks on the public booking surface;
+- k6 for availability load and capacity-one contention;
+- Allure for inspectable run evidence;
+- TestPulse for longitudinal flake and duration history after real reports exist.
+
+API v2 is intentionally absent from the Phase 1 Compose stack. Its upstream
+Docker build reserves an 8 GB Node heap, equal to the current Docker allocation.
+Phase 2 must first prove a reliable runtime approach rather than hiding an
+unverified service behind a profile.
+
+## Entry and exit criteria
+
+### Phase 1 entry
+
+- Docker is available with an amd64 runtime.
+- Ports 3000 and 8025 are free or explicitly overridden in `.env`.
+- The pinned upstream image remains available by digest.
+
+### Phase 1 exit
+
+- A clean bootstrap reaches healthy PostgreSQL, Cal.diy, and Mailpit services.
+- The official seed produces the public `/pro/30min` booking page.
+- A second bootstrap skips the seed and preserves data.
+- The guarded reset removes only the project volumes and rebuilds successfully.
+- Static validation passes and both strategy documents contain no delivered-test
+  or defect claims.
+- Mohanad has written or approved the Phase 1 decision-log entries in his own
+  words.
+
+### Automation-phase exit — planned
+
+Each later phase must have passing tests, negative-path coverage, retained
+failure evidence, independent rerunability, and a decision-log update. Test
+counts are reported from CI artifacts, never estimated in documentation.
+
+## Reporting and defect policy
+
+Every reported defect must include target commit, environment, preconditions,
+minimal reproduction, expected and actual behavior, severity rationale, and
+evidence. Suspected root cause is optional and must be labeled as a hypothesis.
+
+No bug will be manufactured to improve the portfolio. A suite finding no defect
+is reported with the cases and version tested. Upstream issues are created only
+for findings that are current, reproducible, searched for duplicates, and
+appropriate for the public Cal.diy repository.
+
+Flaky tests will not be silently retried into green. The later CI policy will
+record the first failure, retain traces, and use a time-limited quarantine only
+after evidence supports a test-flake classification. TestPulse integration will
+begin only after the suites emit genuine JUnit or Playwright reports.
+
+## Explicit exclusions
+
+- current hosted Cal.com behavior or private source code;
+- enterprise-only organizations, SSO/SAML, billing, or support promises;
+- live Stripe, PayPal, Google Calendar, Microsoft, Zoom, or other provider
+  credentials;
+- native mobile applications;
+- email deliverability beyond Cal.diy handing a message to local SMTP;
+- destructive penetration testing, denial-of-service testing, or public-host
+  load generation;
+- production capacity or availability SLO claims.
+
+These exclusions can be revisited only by a documented decision with a safe,
+reproducible environment and a truthful change to the project claims.
