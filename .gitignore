@@ -1,0 +1,23 @@
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Test and tool output
+allure-results/
+allure-report/
+playwright-report/
+test-results/
+.pytest_cache/
+.ruff_cache/
+__pycache__/
+*.py[cod]
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/
+
+# Temporary files
+*.log
+tmp/
