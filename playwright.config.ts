@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const webPort = process.env.CALDIY_WEB_PORT ?? "3000";
-const baseURL = process.env.CALDIY_WEB_URL ?? `http://127.0.0.1:${webPort}`;
+const baseURL = process.env.CALDIY_WEB_URL ?? `http://localhost:${webPort}`;
 const authState = "test-results/auth/owner1-acme.json";
 
 export default defineConfig({
@@ -58,7 +58,7 @@ export default defineConfig({
     {
       name: "chromium-visual",
       testMatch: /tests\/visual\/.*\.spec\.ts/,
-      use: { ...devices["Desktop Chrome"], animations: "disabled", colorScheme: "light" }
+      use: { ...devices["Desktop Chrome"], colorScheme: "light" }
     }
   ]
 });

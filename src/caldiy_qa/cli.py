@@ -88,6 +88,7 @@ def _create(*, time_zone: str, start_time: str, end_time: str, length_minutes: i
                 "runId": run_id,
                 "workerId": worker_id,
                 "resources": {
+                    "bookingUids": [],
                     "eventTypeIds": [event_type_id],
                     "scheduleIds": [schedule_id],
                     "eventTypes": [
@@ -95,8 +96,9 @@ def _create(*, time_zone: str, start_time: str, end_time: str, length_minutes: i
                             "id": event_type_id,
                             "slug": event_type_slug,
                             "title": event_type_title,
-                            "username": "owner1-acme",
-                            "bookingPath": f"/owner1-acme/{event_type_slug}",
+                            "username": "owner1",
+                            "organizationSlug": "acme",
+                            "bookingPath": f"/owner1/{event_type_slug}",
                         }
                     ],
                     "schedules": [{"id": schedule_id, "timeZone": time_zone}],
@@ -124,6 +126,11 @@ def _destroy(*, manifest_path: Path | None) -> None:
     errors: list[dict[str, Any]] = []
     contracts = ContractValidator.load()
     with CalDiyClient(Settings.from_env(), contracts) as client:
+        for booking_uid in reversed(_string_ids(resources.get("bookingUids", []), "bookingUids")):
+            try:
+                client.cancel_booking(booking_uid, tolerate_terminal=True)
+            except Exception as error:
+                errors.append({"resource": f"booking:{booking_uid}", "error": str(error)})
         for event_type_id in reversed(_integer_ids(resources.get("eventTypeIds"))):
             try:
                 client.delete_event_type(event_type_id, tolerate_missing=True)
@@ -158,6 +165,12 @@ def _manifest_string(resource: Mapping[str, object], key: str, label: str) -> st
 def _integer_ids(value: object) -> list[int]:
     if not isinstance(value, list) or any(not isinstance(item, int) for item in value):
         raise SystemExit("fixture manifest resource IDs must be integer arrays")
+    return value
+
+
+def _string_ids(value: object, label: str) -> list[str]:
+    if not isinstance(value, list) or any(not isinstance(item, str) or not item for item in value):
+        raise SystemExit(f"fixture manifest {label} must be a string array")
     return value
 
 
