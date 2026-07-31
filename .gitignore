@@ -4,6 +4,10 @@
 !.env.example
 
 # Test and tool output
+.cache/
+.coverage
+.mypy_cache/
+.venv/
 allure-results/
 allure-report/
 playwright-report/
