@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "runId": "phase4-validation",
+  "workerId": "k6",
+  "resources": {
+    "bookingUids": [],
+    "eventTypeIds": [1],
+    "scheduleIds": [1]
+  }
+}
