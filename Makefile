@@ -1,6 +1,6 @@
 SHELL := /usr/bin/env bash
 
-.PHONY: help api-build sut-bootstrap sut-smoke sut-api-bootstrap sut-api-smoke sut-down sut-reset test-bootstrap test-api test-e2e test-timezones test-bdd test-a11y contracts-verify validate
+.PHONY: help api-build sut-bootstrap sut-smoke sut-api-bootstrap sut-api-smoke sut-down sut-reset test-bootstrap test-api test-e2e test-timezones test-bdd test-a11y update-snapshots contracts-verify validate
 
 help:
 	@printf '%s\n' \
@@ -17,6 +17,7 @@ help:
 	  'make test-timezones                        Run the pinned-oracle timezone matrix' \
 	  'make test-bdd                              Run exactly three Cucumber lifecycle journeys' \
 	  'make test-a11y                             Run serious/critical axe checks' \
+	  'make update-snapshots CONFIRM=caldiy-qa-strategy  Explicitly update Chromium snapshots' \
 	  'make contracts-verify                      Verify pinned and live suite operation contracts' \
 	  'make validate                              Run repository static validation'
 
@@ -58,6 +59,9 @@ test-bdd:
 
 test-a11y:
 	@./scripts/browser-test.sh a11y
+
+update-snapshots:
+	@CONFIRM='$(CONFIRM)' ./scripts/update-snapshots.sh
 
 contracts-verify:
 	@./scripts/contracts-verify.sh
