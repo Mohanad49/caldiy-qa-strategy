@@ -1,7 +1,7 @@
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 
-import { runProcess } from "./process.js";
+import { runProcess } from "./process.ts";
 
 export interface EventTypeFixture {
   id: number;

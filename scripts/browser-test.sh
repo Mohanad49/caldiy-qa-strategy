@@ -4,6 +4,16 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 env_file="${repo_root}/.env"
 suite="${1:-}"
+node_version="$(<"${repo_root}/.nvmrc")"
+node_candidate="${NVM_DIR:-${HOME}/.nvm}/versions/node/v${node_version}/bin"
+
+if [[ -x "${node_candidate}/node" ]]; then
+  export PATH="${node_candidate}:${PATH}"
+fi
+if [[ "$(node --version)" != "v${node_version}" ]]; then
+  printf 'Node %s is required for browser tests; found %s.\n' "${node_version}" "$(node --version)" >&2
+  exit 1
+fi
 
 case "${suite}" in
   e2e | timezones | bdd | a11y | visual) ;;

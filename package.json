@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=20 <24"
+    "node": ">=22 <23 || >=24 <25"
   },
   "packageManager": "pnpm@11.17.0",
   "scripts": {
@@ -13,7 +13,7 @@
     "test:timezones": "playwright test --project=chromium-timezones",
     "test:a11y": "playwright test --project=chromium-a11y",
     "test:visual": "playwright test --project=chromium-visual",
-    "test:bdd": "node --import tsx ./node_modules/@cucumber/cucumber/bin/cucumber.js"
+    "test:bdd": "node --import tsx ./node_modules/@cucumber/cucumber/bin/cucumber.js --config cucumber.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.12.1",

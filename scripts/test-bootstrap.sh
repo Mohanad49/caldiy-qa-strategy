@@ -2,6 +2,16 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+node_version="$(<"${repo_root}/.nvmrc")"
+node_candidate="${NVM_DIR:-${HOME}/.nvm}/versions/node/v${node_version}/bin"
+
+if [[ -x "${node_candidate}/node" ]]; then
+  export PATH="${node_candidate}:${PATH}"
+fi
+if [[ "$(node --version)" != "v${node_version}" ]]; then
+  printf 'Node %s is required for browser tests; found %s.\n' "${node_version}" "$(node --version)" >&2
+  exit 1
+fi
 cd "${repo_root}"
 export UV_CACHE_DIR="${repo_root}/.cache/uv"
 
