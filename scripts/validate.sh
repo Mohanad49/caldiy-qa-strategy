@@ -121,8 +121,8 @@ if git ls-files --error-unmatch .env >/dev/null 2>&1; then
   fail '.env is tracked'
 fi
 git check-ignore -q .env || fail '.env is not ignored'
-git check-ignore -q .cache/cal-diy-v6.2.0 || fail 'API source cache is not ignored'
-git check-ignore -q .venv || fail 'Python virtual environment is not ignored'
+git check-ignore -q .cache/cal-diy-v6.2.0/ || fail 'API source cache is not ignored'
+git check-ignore -q .venv/ || fail 'Python virtual environment is not ignored'
 
 if git grep -nE '(sk_live_[A-Za-z0-9]+|ghp_[A-Za-z0-9]+|github_pat_[A-Za-z0-9_]+|-----BEGIN (RSA |OPENSSH |EC )?PRIVATE KEY-----)' \
   -- . ':(exclude).env.example'; then
