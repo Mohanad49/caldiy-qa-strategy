@@ -12,6 +12,9 @@ allure-results/
 allure-report/
 playwright-report/
 test-results/
+node_modules/
+.pnpm-store/
+blob-report/
 .pytest_cache/
 .ruff_cache/
 __pycache__/

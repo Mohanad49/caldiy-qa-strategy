@@ -1,0 +1,27 @@
+{
+  "name": "caldiy-qa-strategy",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20 <24"
+  },
+  "packageManager": "pnpm@11.17.0",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "playwright test --project=chromium-e2e --project=firefox-lifecycle",
+    "test:timezones": "playwright test --project=chromium-timezones",
+    "test:a11y": "playwright test --project=chromium-a11y",
+    "test:visual": "playwright test --project=chromium-visual",
+    "test:bdd": "node --import tsx ./node_modules/@cucumber/cucumber/bin/cucumber.js"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.12.1",
+    "@cucumber/cucumber": "13.2.0",
+    "@playwright/test": "1.57.0",
+    "@types/node": "20.17.23",
+    "allure-playwright": "3.10.2",
+    "tsx": "4.23.1",
+    "typescript": "5.9.3"
+  }
+}

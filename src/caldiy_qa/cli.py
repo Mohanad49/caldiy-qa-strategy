@@ -25,6 +25,9 @@ def main() -> None:
     create_parser = subparsers.add_parser("create", help="create an isolated schedule and event type")
     create_parser.add_argument("--json", action="store_true", required=True, help="emit a JSON manifest")
     create_parser.add_argument("--time-zone", default="UTC")
+    create_parser.add_argument("--start-time", default="09:00")
+    create_parser.add_argument("--end-time", default="17:00")
+    create_parser.add_argument("--length-minutes", type=int, default=30)
 
     destroy_parser = subparsers.add_parser("destroy", help="destroy resources from a JSON manifest")
     destroy_parser.add_argument("--json", action="store_true", required=True, help="emit a JSON result")
@@ -32,12 +35,19 @@ def main() -> None:
 
     args = parser.parse_args()
     if args.command == "create":
-        _create(time_zone=args.time_zone)
+        _create(
+            time_zone=args.time_zone,
+            start_time=args.start_time,
+            end_time=args.end_time,
+            length_minutes=args.length_minutes,
+        )
     else:
         _destroy(manifest_path=args.manifest)
 
 
-def _create(*, time_zone: str) -> None:
+def _create(*, time_zone: str, start_time: str, end_time: str, length_minutes: int) -> None:
+    if length_minutes < 5 or length_minutes > 720:
+        raise SystemExit("length-minutes must be between 5 and 720")
     run_id = os.getenv("QA_RUN_ID") or f"{datetime.now(UTC):%Y%m%d%H%M%S}-{uuid.uuid4().hex[:8]}"
     worker_id = os.getenv("PYTEST_XDIST_WORKER", "cli")
     contracts = ContractValidator.load()
@@ -50,10 +60,29 @@ def _create(*, time_zone: str) -> None:
                 names=UniqueNames(run_id=run_id, worker_id=worker_id),
                 cleanup=cleanup,
             )
-            schedule = factory.create_schedule(time_zone=time_zone)
+            schedule = factory.create_schedule(
+                time_zone=time_zone,
+                availability=[
+                    {
+                        "days": [
+                            "Monday",
+                            "Tuesday",
+                            "Wednesday",
+                            "Thursday",
+                            "Friday",
+                            "Saturday",
+                            "Sunday",
+                        ],
+                        "startTime": start_time,
+                        "endTime": end_time,
+                    }
+                ],
+            )
             schedule_id = _manifest_id(schedule, "schedule")
-            event_type = factory.create_event_type(schedule_id)
+            event_type = factory.create_event_type(schedule_id, length_minutes=length_minutes)
             event_type_id = _manifest_id(event_type, "event type")
+            event_type_slug = _manifest_string(event_type, "slug", "event type")
+            event_type_title = _manifest_string(event_type, "title", "event type")
             manifest = {
                 "schemaVersion": 1,
                 "runId": run_id,
@@ -61,6 +90,16 @@ def _create(*, time_zone: str) -> None:
                 "resources": {
                     "eventTypeIds": [event_type_id],
                     "scheduleIds": [schedule_id],
+                    "eventTypes": [
+                        {
+                            "id": event_type_id,
+                            "slug": event_type_slug,
+                            "title": event_type_title,
+                            "username": "owner1-acme",
+                            "bookingPath": f"/owner1-acme/{event_type_slug}",
+                        }
+                    ],
+                    "schedules": [{"id": schedule_id, "timeZone": time_zone}],
                 },
             }
             print(json.dumps(manifest, separators=(",", ":"), sort_keys=True))
@@ -107,6 +146,13 @@ def _manifest_id(resource: Mapping[str, object], label: str) -> int:
     if not isinstance(resource_id, int):
         raise AssertionError(f"created {label} has no integer id")
     return resource_id
+
+
+def _manifest_string(resource: Mapping[str, object], key: str, label: str) -> str:
+    value = resource.get(key)
+    if not isinstance(value, str) or not value:
+        raise AssertionError(f"created {label} has no string {key}")
+    return value
 
 
 def _integer_ids(value: object) -> list[int]:
