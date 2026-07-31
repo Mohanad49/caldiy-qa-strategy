@@ -1,6 +1,6 @@
 SHELL := /usr/bin/env bash
 
-.PHONY: help api-build sut-bootstrap sut-smoke sut-api-bootstrap sut-api-smoke sut-down sut-reset test-bootstrap test-api test-e2e test-timezones test-bdd contracts-verify validate
+.PHONY: help api-build sut-bootstrap sut-smoke sut-api-bootstrap sut-api-smoke sut-down sut-reset test-bootstrap test-api test-e2e test-timezones test-bdd test-a11y contracts-verify validate
 
 help:
 	@printf '%s\n' \
@@ -16,6 +16,7 @@ help:
 	  'make test-e2e                              Run Chromium lifecycle and Firefox smoke tests' \
 	  'make test-timezones                        Run the pinned-oracle timezone matrix' \
 	  'make test-bdd                              Run exactly three Cucumber lifecycle journeys' \
+	  'make test-a11y                             Run serious/critical axe checks' \
 	  'make contracts-verify                      Verify pinned and live suite operation contracts' \
 	  'make validate                              Run repository static validation'
 
@@ -54,6 +55,9 @@ test-timezones:
 
 test-bdd:
 	@./scripts/browser-test.sh bdd
+
+test-a11y:
+	@./scripts/browser-test.sh a11y
 
 contracts-verify:
 	@./scripts/contracts-verify.sh

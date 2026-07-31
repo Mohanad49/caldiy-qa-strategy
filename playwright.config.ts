@@ -53,7 +53,11 @@ export default defineConfig({
     {
       name: "chromium-a11y",
       testMatch: /tests\/a11y\/.*\.spec\.ts/,
-      use: { ...devices["Desktop Chrome"] }
+      use: {
+        ...devices["Desktop Chrome"],
+        colorScheme: "light",
+        contextOptions: { reducedMotion: "reduce" }
+      }
     },
     {
       name: "chromium-visual",
