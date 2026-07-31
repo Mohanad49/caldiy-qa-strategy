@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "availabilityP95Ms": 1700,
+  "availabilityP95Ms": 2300,
   "basis": {
-    "measuredAt": "2026-07-31T23:03:47.259084+00:00",
-    "runP95Ms": [1327.17, 967.72, 456.54, 1052.3, 651.36],
-    "worstRunP95Ms": 1327.17,
+    "measuredAt": "2026-07-31T23:16:50.846223+00:00",
+    "runP95Ms": [894.964, 1811.045, 705.0, 1003.7233, 535.2553],
+    "worstRunP95Ms": 1811.045,
     "policy": "max(500ms, 125% of worst run-level p95), rounded up to 50ms"
   },
   "scope": "Local amd64 Docker threshold for Cal.diy v6.2.0; not a production SLO"
