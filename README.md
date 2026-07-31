@@ -19,7 +19,7 @@ in its [announcement](https://cal.com/blog/cal-com-goes-closed-source-why).
 
 | Phase | Deliverable | Status |
 |---|---|---|
-| 1 | Pinned local environment, test strategy, risk analysis | In progress |
+| 1 | Pinned local environment, test strategy, risk analysis | Implemented |
 | 2 | API v2 automation with pytest and httpx | Planned |
 | 3 | Playwright E2E, selective Cucumber BDD, accessibility and visual checks | Planned |
 | 4 | k6 performance and contention gates | Planned |
@@ -28,6 +28,10 @@ in its [announcement](https://cal.com/blog/cal-com-goes-closed-source-why).
 
 There are currently no automated product tests, performance results, defect
 claims, or upstream issues in this repository.
+
+[TestPulse](https://github.com/Mohanad49/testpulse) is already a separate,
+publicly available project. Only this repository's report ingestion into
+TestPulse remains planned.
 
 ## Phase 1 commands
 

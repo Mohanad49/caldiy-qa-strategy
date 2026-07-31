@@ -134,7 +134,8 @@ These choices describe future implementation; they are not yet delivered:
 - axe-core for accessibility checks on the public booking surface;
 - k6 for availability load and capacity-one contention;
 - Allure for inspectable run evidence;
-- TestPulse for longitudinal flake and duration history after real reports exist.
+- the existing public TestPulse service for longitudinal flake and duration
+  history after this repository produces real reports.
 
 API v2 is intentionally absent from the Phase 1 Compose stack. Its upstream
 Docker build reserves an 8 GB Node heap, equal to the current Docker allocation.
