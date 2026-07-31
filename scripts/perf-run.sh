@@ -37,6 +37,12 @@ set +a
 export UV_CACHE_DIR="${repo_root}/.cache/uv"
 
 cd "${repo_root}"
+case "${scenario}" in
+  availability) required_budget=10 ;;
+  booking) required_budget=110 ;;
+  contention) required_budget=35 ;;
+esac
+"${repo_root}/scripts/wait-api-budget.sh" "${required_budget}"
 "${repo_root}/scripts/api-smoke.sh"
 mkdir -p "${result_dir}"
 
@@ -46,17 +52,46 @@ raw_path="${result_dir}/raw.json.gz"
 metadata_path="${result_dir}/environment.json"
 cleanup_path="${result_dir}/cleanup.json"
 
-QA_RUN_ID="${run_id}" PYTEST_XDIST_WORKER="k6" \
-  uv run --frozen caldiy-fixtures create --json \
-    --time-zone UTC --start-time 00:00 --end-time 23:59 --length-minutes 5 \
-  | tee "${manifest_path}" >/dev/null
-
+cleanup_done=0
 cleanup_fixture() {
-  local cleanup_status=0
-  uv run --frozen caldiy-fixtures destroy --json --manifest "${manifest_path}" \
-    | tee "${cleanup_path}" >/dev/null || cleanup_status=$?
+  local attempt cleanup_status=1
+  if [[ -s "${manifest_path}" ]]; then
+    for attempt in 1 2 3 4 5 6; do
+      cleanup_status=0
+      uv run --frozen caldiy-fixtures destroy --json --manifest "${manifest_path}" \
+        | tee "${cleanup_path}" >/dev/null || cleanup_status=$?
+      if (( cleanup_status == 0 )); then
+        break
+      fi
+      if (( attempt < 6 )); then
+        printf 'Fixture cleanup attempt %s was throttled or failed; retrying in 10 seconds.\n' \
+          "${attempt}" >&2
+        sleep 10
+      fi
+    done
+  else
+    cleanup_status=0
+  fi
+  if (( cleanup_status == 0 )); then
+    cleanup_done=1
+  fi
   return "${cleanup_status}"
 }
+
+cleanup_on_exit() {
+  local original_status=$?
+  trap - EXIT INT TERM
+  if (( cleanup_done == 0 )); then
+    cleanup_fixture || true
+  fi
+  exit "${original_status}"
+}
+trap cleanup_on_exit EXIT INT TERM
+
+QA_RUN_ID="${run_id}" PYTEST_XDIST_WORKER="k6" \
+  uv run --frozen caldiy-fixtures create --json \
+    --time-zone UTC --start-time 00:00 --end-time 23:59 --length-minutes 30 \
+  | tee "${manifest_path}" >/dev/null
 
 threshold_ms="60000"
 if [[ "${scenario}" == "availability" && "${PERF_BASELINE_MODE:-0}" != "1" ]]; then

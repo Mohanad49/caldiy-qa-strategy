@@ -32,6 +32,14 @@ export function headers(version) {
   };
 }
 
+export function publicHeaders(version, clientId) {
+  return {
+    Accept: "application/json",
+    "cal-api-version": version,
+    "x-cal-client-id": clientId
+  };
+}
+
 export function futureDateRange(days = 14) {
   const start = new Date();
   start.setUTCDate(start.getUTCDate() + 1);
@@ -45,13 +53,15 @@ export function futureDateRange(days = 14) {
 
 export function slotsUrl(days = 14) {
   const range = futureDateRange(days);
-  const query = new URLSearchParams({
-    eventTypeId: String(eventTypeId()),
-    start: range.start,
-    end: range.end,
-    timeZone: "UTC"
-  });
-  return `${apiUrl}/v2/slots?${query.toString()}`;
+  const query = [
+    ["eventTypeId", String(eventTypeId())],
+    ["start", range.start],
+    ["end", range.end],
+    ["timeZone", "UTC"]
+  ]
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+    .join("&");
+  return `${apiUrl}/v2/slots?${query}`;
 }
 
 export function getSlots(days = 14) {

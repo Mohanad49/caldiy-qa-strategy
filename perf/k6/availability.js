@@ -1,8 +1,9 @@
 import exec from "k6/execution";
 import http from "k6/http";
 import { Rate, Trend } from "k6/metrics";
+import { sleep } from "k6";
 
-import { headers, slotsUrl } from "./common.js";
+import { publicHeaders, runId, slotsUrl } from "./common.js";
 
 const baselineMode = __ENV.PERF_BASELINE_MODE === "1";
 const thresholdMs = Number(__ENV.PERF_AVAILABILITY_P95_MS || "60000");
@@ -44,18 +45,29 @@ export const options = {
 };
 
 export function warmup() {
-  http.get(slotsUrl(), {
-    headers: headers("2024-09-04"),
-    tags: { operation: "availability-warmup" }
-  });
+  try {
+    http.get(slotsUrl(8), {
+      headers: publicHeaders("2024-09-04", `${runId}-availability-${exec.vu.idInTest}`),
+      tags: { operation: "availability-warmup" }
+    });
+    sleep(1);
+  } catch (error) {
+    exec.test.abort(`availability warm-up script error: ${error}`);
+  }
 }
 
 export function measureAvailability() {
-  const response = http.get(slotsUrl(), {
-    headers: headers("2024-09-04"),
-    tags: { operation: "availability-measured", scenario: exec.scenario.name }
-  });
-  const valid = response.status === 200 && response.json("status") === "success";
-  availabilityDuration.add(response.timings.duration);
-  availabilityErrors.add(!valid);
+  try {
+    const response = http.get(slotsUrl(8), {
+      headers: publicHeaders("2024-09-04", `${runId}-availability-${exec.vu.idInTest}`),
+      tags: { operation: "availability-measured", scenario: exec.scenario.name }
+    });
+    const valid = response.status === 200 && response.json("status") === "success";
+    availabilityDuration.add(response.timings.duration);
+    availabilityErrors.add(!valid);
+    sleep(1);
+  } catch (error) {
+    availabilityErrors.add(true);
+    exec.test.abort(`availability measurement script error: ${error}`);
+  }
 }

@@ -18,7 +18,7 @@ def main() -> None:
     for summary_path in args.summaries:
         summary = json.loads(summary_path.read_text(encoding="utf-8"))
         try:
-            value = float(summary["metrics"]["availability_request_duration"]["values"]["p(95)"])
+            value = float(summary["metrics"]["availability_request_duration"]["p(95)"])
         except (KeyError, TypeError, ValueError) as error:
             raise SystemExit(f"{summary_path} has no numeric availability p95: {error}") from error
         run_p95_ms.append(value)

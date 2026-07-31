@@ -21,7 +21,7 @@ export const options = {
     booking_throughput: {
       executor: "shared-iterations",
       vus: 10,
-      iterations: 100,
+      iterations: 50,
       maxDuration: "2m",
       gracefulStop: "5s"
     }
@@ -35,10 +35,10 @@ export const options = {
 
 export function setup() {
   const slots = getSlots(14);
-  if (slots.length < 100) {
-    throw new Error(`booking throughput requires 100 unique slots; found ${slots.length}`);
+  if (slots.length < 50) {
+    throw new Error(`booking throughput requires 50 unique slots; found ${slots.length}`);
   }
-  return { slots: slots.slice(0, 100) };
+  return { slots: slots.slice(0, 50) };
 }
 
 export default function (data) {

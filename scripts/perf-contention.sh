@@ -10,6 +10,14 @@ mkdir -p "${result_root}"
 PERF_RESULT_DIR="${result_root}" QA_RUN_ID="contention-${timestamp}" \
   "${repo_root}/scripts/perf-run.sh" contention || status=$?
 
+if [[ ! -s "${result_root}/summary.json" ]]; then
+  printf 'Contention run produced no k6 summary; JUnit conversion was skipped.\n' >&2
+  if (( status == 0 )); then
+    status=1
+  fi
+  exit "${status}"
+fi
+
 UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen python \
   "${repo_root}/scripts/perf_to_junit.py" \
   --output "${result_root}/junit.xml" \

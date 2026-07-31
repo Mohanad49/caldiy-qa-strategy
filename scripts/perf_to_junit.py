@@ -18,6 +18,15 @@ def main() -> None:
     cases = 0
     for summary_path in args.summaries:
         summary = json.loads(summary_path.read_text(encoding="utf-8"))
+        metric_names = set(summary.get("metrics", {}))
+        if any(name.startswith("contention_") for name in metric_names):
+            scenario_name = "contention"
+        elif "booking_errors" in metric_names:
+            scenario_name = "booking-throughput"
+        elif "availability_errors" in metric_names:
+            scenario_name = "availability"
+        else:
+            scenario_name = "unknown"
         for metric_name, metric in sorted(summary.get("metrics", {}).items()):
             thresholds = metric.get("thresholds") if isinstance(metric, dict) else None
             if not isinstance(thresholds, dict):
@@ -27,12 +36,15 @@ def main() -> None:
                 case = ET.SubElement(
                     suite,
                     "testcase",
-                    classname=f"k6.{summary_path.parent.name}",
+                    classname=f"k6.{scenario_name}",
                     name=f"{metric_name} {expression}",
                 )
-                values = metric.get("values", {})
+                values = {key: value for key, value in metric.items() if key != "thresholds"}
                 ET.SubElement(case, "system-out").text = json.dumps(values, sort_keys=True)
-                if not isinstance(outcome, dict) or outcome.get("ok") is not True:
+                passed = outcome is False or (
+                    isinstance(outcome, dict) and outcome.get("ok") is True
+                )
+                if not passed:
                     failures += 1
                     ET.SubElement(
                         case,
