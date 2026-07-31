@@ -16,6 +16,7 @@ required_files=(
   docs/RISK-ANALYSIS.md
   docs/API-V2-RUNTIME.md
   docs/PHASE-3-EVIDENCE.md
+  docs/PHASE-4-EVIDENCE.md
   infra/compose.yml
   infra/api-v2.Dockerfile
   pyproject.toml
@@ -28,6 +29,9 @@ required_files=(
   playwright.config.ts
   cucumber.mjs
   scripts/validate_phase3.py
+  scripts/validate_phase4.py
+  perf/thresholds.json
+  perf/fixture.example.json
   contracts/api-v2/openapi-v6.2.0.json
   contracts/api-v2/common-error-envelope.schema.json
   .env.example
@@ -92,10 +96,24 @@ command -v uv >/dev/null 2>&1 || fail 'uv is required for validation'
 UV_CACHE_DIR="${repo_root}/.cache/uv" uv lock --check >/dev/null || fail 'uv.lock is stale'
 UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen ruff check src tests || fail 'ruff checks failed'
 UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen mypy src || fail 'mypy checks failed'
-UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen python -m compileall -q src tests || \
+UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen python -m compileall -q src tests scripts || \
   fail 'Python syntax checks failed'
 UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen python scripts/validate_phase3.py || \
   fail 'Phase 3 static contracts failed'
+UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen python scripts/validate_phase4.py || \
+  fail 'Phase 4 static contracts failed'
+
+fixture_path="${repo_root}/perf/fixture.example.json"
+for k6_script in availability.js booking-throughput.js contention.js; do
+  "${repo_root}/scripts/k6.sh" inspect \
+    --env "CALDIY_API_URL=http://localhost:5555" \
+    --env "CALDIY_API_KEY=cal_test_owner1-acme" \
+    --env "PERF_FIXTURE_MANIFEST=${fixture_path}" \
+    --env "PERF_AVAILABILITY_P95_MS=2300" \
+    --env "QA_RUN_ID=static-validation" \
+    "${repo_root}/perf/k6/${k6_script}" >/dev/null || \
+    fail "k6 inspection failed for ${k6_script}"
+done
 
 node_version="$(<.nvmrc)"
 node_candidate="${NVM_DIR:-${HOME}/.nvm}/versions/node/v${node_version}/bin"
