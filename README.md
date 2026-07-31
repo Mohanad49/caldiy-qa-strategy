@@ -21,17 +21,23 @@ in its [announcement](https://cal.com/blog/cal-com-goes-closed-source-why).
 |---|---|---|
 | 1 | Pinned local environment, test strategy, risk analysis | Implemented |
 | 2 | API v2 automation with pytest and httpx | Implemented |
-| 3 | Playwright E2E, selective Cucumber BDD, accessibility and visual checks | Planned |
+| 3 | Playwright E2E, selective Cucumber BDD, accessibility and visual checks | Implemented |
 | 4 | k6 performance and contention gates | Planned |
 | 5 | CI, Allure reporting and TestPulse ingestion | Planned |
 | 6 | Verified defect reports and eligible upstream reports | Planned |
 
 The Phase 2 local run passed 13 of 13 API tests in 17.58 seconds with 77%
 branch-aware package coverage. It produced 14 evidence-backed contract
-compatibility findings against the historical `v6.2.0` snapshot. These are
-local results, not CI or current-upstream claims; no upstream issue has been
-filed. Browser, timezone-transition, accessibility, visual, BDD and performance
-results remain planned.
+compatibility findings against the historical `v6.2.0` snapshot.
+
+Phase 3 produced these local results: 12 of 12 browser lifecycle tests passed,
+all three BDD scenarios and 18 steps passed, 13 of 13 timezone tests passed,
+and both visual comparisons passed. The accessibility gate intentionally
+remains red: one of three surfaces passed and two failed with three documented
+serious or critical findings. The timezone suite produced one additional local
+snapshot finding. These are local results, not current-upstream or hosted
+Cal.com claims; none has been filed upstream. Performance results remain
+planned.
 
 [TestPulse](https://github.com/Mohanad49/testpulse) is already a separate,
 publicly available project. Only this repository's report ingestion into
@@ -60,6 +66,16 @@ make test-api
 make contracts-verify
 ```
 
+Phase 3 browser, timezone and accessibility commands:
+
+```text
+make test-e2e
+make test-timezones
+make test-bdd
+make test-a11y
+make update-snapshots CONFIRM=caldiy-qa-strategy
+```
+
 The API v2 image is built locally from the exact controlled commit and is not
 redistributable. It must not be pushed to a container registry.
 
@@ -75,5 +91,6 @@ They must never be reused for a deployed environment or treated as secrets.
 - `docs/RISK-ANALYSIS.md` — timezone and DST failure model
 - `docs/API-V2-RUNTIME.md` — exact-source build and runtime qualification evidence
 - `docs/API-AUTOMATION.md` — client design, contract policy, coverage and local results
+- `docs/PHASE-3-EVIDENCE.md` — measured browser, timezone, accessibility and visual results
 - `docs/findings/` — snapshot-specific compatibility findings requiring current-upstream verification
 - `DECISIONS.md` — decisions written or approved by Mohanad after each phase

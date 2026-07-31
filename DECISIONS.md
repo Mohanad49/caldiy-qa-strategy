@@ -190,3 +190,122 @@ context, consequences, and evidence record the Phase 2 implementation.
   yet.
 - **Evidence:** The 13-of-13 local run, 17.58-second JUnit result, 77% coverage,
   generated local report formats, and absence of TestPulse ingestion.
+
+## Phase 3 decisions
+
+Mohanad approved the seven **Decision** statements on 2026-08-01. The
+surrounding context, consequences, and evidence record the Phase 3
+implementation.
+
+### D-012 — Split browser authority by purpose
+
+- **Status:** Accepted
+- **Context:** Timezone emulation and deterministic screenshots need one stable
+  browser target, while the main booking lifecycle still needs a second-engine
+  compatibility signal.
+- **Decision:** I made Chromium authoritative for lifecycle, timezone,
+  accessibility and visual coverage, and use Firefox only for focused lifecycle
+  smoke coverage because duplicating every matrix across browsers would add
+  runtime without equivalent risk coverage.
+- **Rejected alternative:** Run every timezone, accessibility and visual case
+  in both Chromium and Firefox.
+- **Consequences:** Chromium failures govern these Phase 3 gates; Firefox can
+  reveal lifecycle incompatibilities but does not establish visual or timezone
+  parity.
+- **Evidence:** The 12-test lifecycle run, 13-test timezone run, three-surface
+  axe run, and two Chromium visual comparisons.
+
+### D-013 — Keep Gherkin selective
+
+- **Status:** Accepted
+- **Context:** Gherkin helps stakeholders read complete user journeys but makes
+  lower-level matrices and contract assertions harder to maintain.
+- **Decision:** I use Cucumber for exactly three journeys—booking,
+  rescheduling, and cancellation—and keep API contracts, timezone matrices,
+  accessibility, and visual checks in their native test layers.
+- **Rejected alternative:** Wrap every automated check in Gherkin or omit BDD
+  completely.
+- **Consequences:** The feature file stays readable and reuses the Playwright
+  fixture and page-object layer without duplicating test infrastructure.
+- **Evidence:** One feature containing three scenarios and 18 passing steps,
+  plus the Phase 3 static scenario-count contract.
+
+### D-014 — Use an independent timezone oracle
+
+- **Status:** Accepted
+- **Context:** Browser time controls do not freeze Cal.diy's server, database,
+  or container clocks, and DST expectations must not be derived from the SUT.
+- **Decision:** I generate expected transitions and UTC instants with Python
+  `zoneinfo` forced to pinned `tzdata==2026.3`; browser `timezoneId` controls
+  rendering, and Playwright Clock is limited to browser-side “now” behavior.
+- **Rejected alternative:** Treat Playwright Clock as an end-to-end server time
+  control or calculate expected offsets with Cal.diy itself.
+- **Consequences:** Results record explicit UTC instants and tzdata versions,
+  while tests separately verify that browser clock control did not freeze the
+  server.
+- **Evidence:** The 13-of-13 transition matrix and attached oracle records for
+  nine named zones.
+
+### D-015 — Preserve the real notification boundary
+
+- **Status:** Accepted
+- **Context:** The local fixture has no external calendar credentials, so an
+  initial booking emits Cal.diy's organizer `[Action Required] Confirmed`
+  message instead of the normal guest confirmation.
+- **Decision:** I correlate the organizer notification for initial booking and
+  the guest lifecycle messages for rescheduling and cancellation, and document
+  the missing initial guest message as an environment limitation instead of
+  manufacturing a confirmation path.
+- **Rejected alternative:** Claim a guest confirmation that was not emitted,
+  weaken email correlation, or introduce external calendar credentials into
+  the controlled local fixture.
+- **Consequences:** Notification evidence is truthful but does not establish
+  normal guest-confirmation behavior for a calendar-connected deployment.
+- **Evidence:** Correlated Mailpit assertions in the Playwright and Cucumber
+  lifecycle runs.
+
+### D-016 — Keep the accessibility gate red
+
+- **Status:** Accepted
+- **Context:** Axe found serious or critical failures on two of three tested
+  surfaces in the controlled snapshot.
+- **Decision:** I keep the accessibility gate failing and record the findings
+  with affected nodes; I do not suppress rules or exclude regions merely to
+  produce a green result.
+- **Rejected alternative:** Disable the failing axe rules, lower the impact
+  threshold, or report the suite as passing.
+- **Consequences:** Phase 3 has an honest red quality signal and three local
+  findings that require current-upstream reproduction before filing.
+- **Evidence:** `CALDIY-LOCAL-002` through `CALDIY-LOCAL-004`, their attached
+  JSON evidence, and the stable one-pass/two-fail accessibility run.
+
+### D-017 — Guard visual baseline changes
+
+- **Status:** Accepted
+- **Context:** Booking dates and time choices vary with generated fixtures, but
+  broad masks would make layout regressions invisible.
+- **Decision:** I mask only the proven dynamic calendar regions and require
+  `CONFIRM=caldiy-qa-strategy` before updating the two committed Chromium
+  baselines.
+- **Rejected alternative:** Auto-update snapshots, mask the complete calendar,
+  or omit dynamic controls and accept date-driven churn.
+- **Consequences:** Reviews retain layout evidence at 1440×900 and 390×844;
+  baseline changes are explicit and ordinary comparison cannot overwrite them.
+- **Evidence:** The refused unconfirmed update, confirmed update, clean ordinary
+  comparison, and exact PNG dimension checks in repository validation.
+
+### D-018 — Keep snapshot findings local until current reproduction
+
+- **Status:** Accepted
+- **Context:** Phase 3 exercises a historical Cal.diy release and found one
+  repeated-hour behavior plus three accessibility failures.
+- **Decision:** I classify these as local snapshot findings only; I will not
+  call them current Cal.diy defects or file them upstream until Phase 6 repeats
+  them against current Cal.diy and searches for duplicates.
+- **Rejected alternative:** File issues directly from the historical snapshot
+  or imply that hosted Cal.com has the same behavior.
+- **Consequences:** The evidence remains useful without overstating product
+  currency; a finding can be closed as historical compatibility evidence if it
+  no longer reproduces.
+- **Evidence:** `CALDIY-LOCAL-001` through `CALDIY-LOCAL-004` and the explicit
+  provenance boundary in each report.
