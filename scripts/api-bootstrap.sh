@@ -27,7 +27,7 @@ wait_for_health() {
       status="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "${container_id}")"
     fi
 
-    if [[ "${status}" == "healthy" || "${status}" == "running" ]]; then
+    if [[ "${status}" == "healthy" ]]; then
       return 0
     fi
     if [[ "${status}" == "unhealthy" || "${status}" == "exited" || "${status}" == "dead" ]]; then

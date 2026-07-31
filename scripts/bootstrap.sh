@@ -50,7 +50,7 @@ wait_for_health() {
       status="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "${container_id}")"
     fi
 
-    if [[ "${status}" == "healthy" || "${status}" == "running" ]]; then
+    if [[ "${status}" == "healthy" ]]; then
       return 0
     fi
     if [[ "${status}" == "unhealthy" || "${status}" == "exited" || "${status}" == "dead" ]]; then
@@ -82,6 +82,22 @@ else
   "${compose[@]}" exec -T caldiy yarn workspace @calcom/prisma db-seed
 fi
 
+wait_for_smoke() {
+  local timeout_seconds="$1"
+  local started_at
+  started_at="$(date +%s)"
+
+  until "${repo_root}/scripts/smoke.sh" >/dev/null 2>&1; do
+    if (( $(date +%s) - started_at >= timeout_seconds )); then
+      "${compose[@]}" logs --tail 150 caldiy >&2
+      printf 'Timed out waiting for the complete seeded smoke boundary.\n' >&2
+      return 1
+    fi
+    sleep 3
+  done
+}
+
+wait_for_smoke 180
 "${repo_root}/scripts/smoke.sh"
 
 printf '\nCal.diy:  http://localhost:%s\n' "${CALDIY_WEB_PORT}"
