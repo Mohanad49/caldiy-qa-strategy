@@ -17,6 +17,11 @@ required_files=(
   docs/API-V2-RUNTIME.md
   infra/compose.yml
   infra/api-v2.Dockerfile
+  pyproject.toml
+  uv.lock
+  .python-version
+  contracts/api-v2/openapi-v6.2.0.json
+  contracts/api-v2/common-error-envelope.schema.json
   .env.example
 )
 
@@ -68,6 +73,20 @@ grep -Fq '1c193cca8682b33b9866c792186033f7ef886682' scripts/api-source.sh || \
 grep -Fq 'io.caldiy.qa.redistributable="false"' infra/api-v2.Dockerfile || \
   fail 'API local-image redistribution guard label is missing'
 
+openapi_hash="$(shasum -a 256 contracts/api-v2/openapi-v6.2.0.json | awk '{print $1}')"
+[[ "${openapi_hash}" == 'e9e662d1183733ee57da8ac02a60891c67e021df47c30b4d6fd29bdad60a0cfb' ]] || \
+  fail "OpenAPI snapshot hash changed: ${openapi_hash}"
+grep -Fxq '3.12' .python-version || fail 'Python version must remain 3.12'
+grep -Fq 'tzdata==2026.3' pyproject.toml || fail 'timezone data is not exactly pinned'
+
+if command -v uv >/dev/null 2>&1; then
+  UV_CACHE_DIR="${repo_root}/.cache/uv" uv lock --check >/dev/null || fail 'uv.lock is stale'
+  UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen ruff check src tests || fail 'ruff checks failed'
+  UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen mypy src || fail 'mypy checks failed'
+  UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen python -m compileall -q src tests || \
+    fail 'Python syntax checks failed'
+fi
+
 required_strategy_headings=(
   '## Product and version boundary'
   '## Risk model'
@@ -103,6 +122,7 @@ if git ls-files --error-unmatch .env >/dev/null 2>&1; then
 fi
 git check-ignore -q .env || fail '.env is not ignored'
 git check-ignore -q .cache/cal-diy-v6.2.0 || fail 'API source cache is not ignored'
+git check-ignore -q .venv || fail 'Python virtual environment is not ignored'
 
 if git grep -nE '(sk_live_[A-Za-z0-9]+|ghp_[A-Za-z0-9]+|github_pat_[A-Za-z0-9_]+|-----BEGIN (RSA |OPENSSH |EC )?PRIVATE KEY-----)' \
   -- . ':(exclude).env.example'; then

@@ -9,5 +9,5 @@ if [[ "${CONFIRM:-}" != "${expected_confirmation}" ]]; then
   exit 2
 fi
 
-"${repo_root}/scripts/compose.sh" down --volumes --remove-orphans
+"${repo_root}/scripts/compose.sh" --profile api down --volumes --remove-orphans
 "${repo_root}/scripts/bootstrap.sh"
