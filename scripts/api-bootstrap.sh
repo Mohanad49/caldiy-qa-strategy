@@ -47,6 +47,7 @@ wait_for_health() {
 wait_for_health redis 180
 wait_for_health api-v2 600
 "${repo_root}/scripts/api-smoke.sh"
+"${repo_root}/scripts/api-qualify.sh"
 
 set -a
 # shellcheck disable=SC1091
