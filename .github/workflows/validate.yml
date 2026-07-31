@@ -1,4 +1,4 @@
-name: Phase 1 validation
+name: Repository validation
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: phase-1-${{ github.ref }}
+  group: repository-validation-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -19,5 +19,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Validate configuration, documentation and secret boundaries
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.17"
+          enable-cache: true
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.17.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Install locked validation dependencies
+        run: |
+          uv sync --frozen --python 3.12
+          pnpm install --frozen-lockfile
+      - name: Validate configuration, documentation, suites and secret boundaries
         run: make validate

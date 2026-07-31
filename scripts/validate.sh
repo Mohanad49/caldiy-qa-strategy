@@ -15,11 +15,19 @@ required_files=(
   docs/TEST-STRATEGY.md
   docs/RISK-ANALYSIS.md
   docs/API-V2-RUNTIME.md
+  docs/PHASE-3-EVIDENCE.md
   infra/compose.yml
   infra/api-v2.Dockerfile
   pyproject.toml
   uv.lock
   .python-version
+  .nvmrc
+  package.json
+  pnpm-lock.yaml
+  pnpm-workspace.yaml
+  playwright.config.ts
+  cucumber.mjs
+  scripts/validate_phase3.py
   contracts/api-v2/openapi-v6.2.0.json
   contracts/api-v2/common-error-envelope.schema.json
   .env.example
@@ -77,15 +85,34 @@ openapi_hash="$(shasum -a 256 contracts/api-v2/openapi-v6.2.0.json | awk '{print
 [[ "${openapi_hash}" == 'e9e662d1183733ee57da8ac02a60891c67e021df47c30b4d6fd29bdad60a0cfb' ]] || \
   fail "OpenAPI snapshot hash changed: ${openapi_hash}"
 grep -Fxq '3.12' .python-version || fail 'Python version must remain 3.12'
+grep -Fxq '24.6.0' .nvmrc || fail 'Node version must remain 24.6.0'
 grep -Fq 'tzdata==2026.3' pyproject.toml || fail 'timezone data is not exactly pinned'
 
-if command -v uv >/dev/null 2>&1; then
-  UV_CACHE_DIR="${repo_root}/.cache/uv" uv lock --check >/dev/null || fail 'uv.lock is stale'
-  UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen ruff check src tests || fail 'ruff checks failed'
-  UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen mypy src || fail 'mypy checks failed'
-  UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen python -m compileall -q src tests || \
-    fail 'Python syntax checks failed'
+command -v uv >/dev/null 2>&1 || fail 'uv is required for validation'
+UV_CACHE_DIR="${repo_root}/.cache/uv" uv lock --check >/dev/null || fail 'uv.lock is stale'
+UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen ruff check src tests || fail 'ruff checks failed'
+UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen mypy src || fail 'mypy checks failed'
+UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen python -m compileall -q src tests || \
+  fail 'Python syntax checks failed'
+UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen python scripts/validate_phase3.py || \
+  fail 'Phase 3 static contracts failed'
+
+node_version="$(<.nvmrc)"
+node_candidate="${NVM_DIR:-${HOME}/.nvm}/versions/node/v${node_version}/bin"
+if [[ -x "${node_candidate}/node" ]]; then
+  export PATH="${node_candidate}:${PATH}"
 fi
+[[ "$(node --version)" == "v${node_version}" ]] || \
+  fail "Node ${node_version} is required for TypeScript validation"
+command -v pnpm >/dev/null 2>&1 || fail 'pnpm is required for TypeScript validation'
+[[ "$(pnpm --version)" == '11.17.0' ]] || fail 'pnpm must remain 11.17.0'
+[[ -x node_modules/.bin/tsc ]] || fail 'locked Node dependencies are missing; run make test-bootstrap'
+pnpm install --frozen-lockfile --offline --ignore-scripts >/dev/null || fail 'pnpm lockfile is stale'
+pnpm run typecheck >/dev/null || fail 'TypeScript checks failed'
+pnpm exec playwright test --list >/dev/null || fail 'Playwright test discovery failed'
+mkdir -p test-results/bdd
+node --import tsx ./node_modules/@cucumber/cucumber/bin/cucumber.js \
+  --config cucumber.mjs --dry-run --format progress >/dev/null || fail 'Cucumber dry run failed'
 
 required_strategy_headings=(
   '## Product and version boundary'
@@ -123,6 +150,9 @@ fi
 git check-ignore -q .env || fail '.env is not ignored'
 git check-ignore -q .cache/cal-diy-v6.2.0/ || fail 'API source cache is not ignored'
 git check-ignore -q .venv/ || fail 'Python virtual environment is not ignored'
+git check-ignore -q node_modules/ || fail 'Node dependencies are not ignored'
+git check-ignore -q test-results/ || fail 'browser evidence output is not ignored'
+git check-ignore -q allure-results/ || fail 'Allure input is not ignored'
 
 if git grep -nE '(sk_live_[A-Za-z0-9]+|ghp_[A-Za-z0-9]+|github_pat_[A-Za-z0-9_]+|-----BEGIN (RSA |OPENSSH |EC )?PRIVATE KEY-----)' \
   -- . ':(exclude).env.example'; then
