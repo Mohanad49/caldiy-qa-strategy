@@ -7,8 +7,9 @@ criteria for an independent QA engagement against Cal.diy. It is written for a
 product stakeholder deciding what confidence the engagement can provide and for
 an engineer who must implement the tests without quietly changing that scope.
 
-This document is a strategy, not evidence that the planned automation already
-exists. The repository README is the source of truth for delivery status.
+This document distinguishes delivered evidence from planned work. The
+repository README is the source of truth for delivery status, while subsystem
+documents record the evidence behind an implemented phase.
 
 ## Product and version boundary
 
@@ -86,8 +87,10 @@ forming a second automation framework.
 ### Local controlled environment
 
 Phase 1 supplies Cal.diy, PostgreSQL, and Mailpit with immutable image digests.
-The host exposes only the web and Mailpit HTTP ports on loopback. PostgreSQL is
-not published to the host. Cal.diy telemetry is disabled.
+The Phase 2 `api` profile adds the qualified local API v2 image and an
+internal-only, digest-pinned Redis service. Web, Mailpit, and API HTTP ports bind
+to loopback; PostgreSQL and Redis are not published to the host. Cal.diy
+telemetry is disabled.
 
 The environment is the reference for development and deterministic functional
 checks. It is not a production topology, security baseline, or production SLO
@@ -112,22 +115,27 @@ compatibility result, not filed as a current product defect.
   SQL into an application schema owned by the SUT.
 - `pro@example.com` and `/pro/30min` are the Phase 1 smoke fixtures. Their public
   development password is local test data, not a deployable secret.
-- Phase 2 factories will create prerequisites through supported APIs wherever
-  possible and register cleanup immediately after creation.
-- Data names will include the CI run and worker identity. No test may depend on
+- Phase 2 factories create prerequisites through supported APIs and register
+  LIFO cleanup immediately after validated creation.
+- Data names include the run and worker identity. No test may depend on
   another test's order, residue, or cleanup.
+- Booking cleanup uses the supported cancellation endpoint; the product has no
+  booking-delete endpoint. The guarded project reset removes retained local
+  booking history when a clean database is required.
 - Destructive reset is limited to the named Compose volumes and requires the
   literal confirmation `caldiy-qa-strategy`.
 - Notification assertions will query Mailpit and correlate a message to a unique
   booking identifier instead of assuming inbox order.
 
-## Planned tooling
+## Delivered and planned tooling
 
-These choices describe future implementation; they are not yet delivered:
+Phase 2 delivers Python 3.12, pytest, httpx, xdist, a locked `uv` environment,
+strict typing and linting, pinned timezone data, an unchanged OpenAPI snapshot,
+JSON Schema validation, JUnit, coverage, and Allure-compatible raw results.
+`docs/API-AUTOMATION.md` records its verified scope and local evidence.
 
-- Python, pytest, and httpx for API behavior, factories, and independent timezone
-  oracles;
-- versioned JSON Schema files for deliberate response contracts;
+The following remains planned:
+
 - Playwright and TypeScript for browser automation, fixtures, traces, and visual
   snapshots;
 - `@cucumber/cucumber` for the three business-readable lifecycle journeys only;
@@ -137,10 +145,9 @@ These choices describe future implementation; they are not yet delivered:
 - the existing public TestPulse service for longitudinal flake and duration
   history after this repository produces real reports.
 
-API v2 is intentionally absent from the Phase 1 Compose stack. Its upstream
-Docker build reserves an 8 GB Node heap, equal to the current Docker allocation.
-Phase 2 must first prove a reliable runtime approach rather than hiding an
-unverified service behind a profile.
+API v2 remains absent from the default Phase 1 Compose stack. Its separate
+profile was accepted after an exact-source local build and a ten-minute health
+and memory qualification. The image is non-distributable and stays local.
 
 ## Entry and exit criteria
 
@@ -161,11 +168,22 @@ unverified service behind a profile.
 - Mohanad has written or approved the Phase 1 decision-log entries in his own
   words.
 
-### Automation-phase exit — planned
+### Phase 2 exit
 
-Each later phase must have passing tests, negative-path coverage, retained
-failure evidence, independent rerunability, and a decision-log update. Test
-counts are reported from CI artifacts, never estimated in documentation.
+- The exact-source API v2 runtime passes its health, identity, stability, and
+  memory qualification.
+- All 18 used runtime operations match the unchanged pinned OpenAPI snapshot.
+- Independent API tests cover the delivered positive and negative paths and
+  emit JUnit, coverage, contract, and Allure-compatible evidence.
+- The reusable JSON fixture CLI completes a create/destroy round trip.
+- Local compatibility findings are versioned and are not presented as current
+  upstream defects.
+- Mohanad approves the Phase 2 decision-log entries before the closing commit.
+
+Later phases retain the same rule: passing evidence, independent rerunability,
+truthful status, and an approved decision-log update are required before their
+status changes from planned. Test counts come from run artifacts, never
+estimates.
 
 ## Reporting and defect policy
 
@@ -180,8 +198,10 @@ appropriate for the public Cal.diy repository.
 
 Flaky tests will not be silently retried into green. The later CI policy will
 record the first failure, retain traces, and use a time-limited quarantine only
-after evidence supports a test-flake classification. TestPulse integration will
-begin only after the suites emit genuine JUnit or Playwright reports.
+after evidence supports a test-flake classification. The API suite now emits
+genuine JUnit and Allure-compatible results. TestPulse integration is still
+deferred to the Phase 5 tiered-CI checkpoint; local Phase 2 runs are not
+ingested.
 
 ## Explicit exclusions
 
