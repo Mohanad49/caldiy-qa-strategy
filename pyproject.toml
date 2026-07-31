@@ -1,0 +1,63 @@
+[build-system]
+requires = ["hatchling==1.28.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "caldiy-qa"
+version = "0.2.0"
+description = "Risk-led API automation for the controlled Cal.diy v6.2.0 snapshot"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "httpx==0.28.1",
+  "jsonschema==4.26.0",
+  "openapi-spec-validator==0.9.0",
+  "tzdata==2026.3",
+]
+
+[project.scripts]
+caldiy-fixtures = "caldiy_qa.cli:main"
+
+[dependency-groups]
+dev = [
+  "allure-pytest==2.16.0",
+  "coverage==7.15.2",
+  "mypy==2.3.0",
+  "pytest==9.1.1",
+  "pytest-cov==7.1.0",
+  "pytest-xdist==3.8.0",
+  "ruff==0.16.1",
+  "types-jsonschema==4.26.0.20260518",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/caldiy_qa"]
+
+[tool.pytest.ini_options]
+minversion = "9.0"
+testpaths = ["tests/api"]
+addopts = ["-ra", "--strict-config", "--strict-markers"]
+markers = [
+  "contract: validates the controlled API contract",
+  "destructive_local: creates and removes data only in the local controlled SUT",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["caldiy_qa"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+
+[tool.ruff]
+target-version = "py312"
+line-length = 110
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["caldiy_qa"]
+warn_unreachable = true

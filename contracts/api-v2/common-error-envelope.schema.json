@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://caldiy.qa/contracts/common-error-envelope.schema.json",
+  "title": "Observed Cal.diy API v2 error envelope",
+  "type": "object",
+  "required": ["status", "error"],
+  "properties": {
+    "status": {
+      "const": "error"
+    },
+    "error": {
+      "type": "object",
+      "required": ["code", "message"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
