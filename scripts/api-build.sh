@@ -27,6 +27,7 @@ fi
 source_dir="$(${repo_root}/scripts/api-source.sh)"
 mkdir -p "${build_log_dir}"
 
+"${repo_root}/scripts/ensure-env.sh"
 if [[ -f "${repo_root}/.env" ]]; then
   "${repo_root}/scripts/compose.sh" --profile api down
 fi

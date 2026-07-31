@@ -111,7 +111,7 @@ fi
 
 if git grep -nE '__[A-Z_]+__' -- . \
   ':(exclude).env.example' \
-  ':(exclude)scripts/bootstrap.sh'; then
+  ':(exclude)scripts/ensure-env.sh'; then
   fail 'unresolved placeholder found outside .env.example'
 fi
 
