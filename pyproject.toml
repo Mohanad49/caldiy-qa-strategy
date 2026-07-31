@@ -16,6 +16,7 @@ dependencies = [
 
 [project.scripts]
 caldiy-fixtures = "caldiy_qa.cli:main"
+caldiy-timezone-oracle = "caldiy_qa.timezone_oracle:main"
 
 [dependency-groups]
 dev = [
