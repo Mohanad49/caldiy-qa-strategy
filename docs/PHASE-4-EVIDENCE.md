@@ -42,10 +42,28 @@ available to Docker, and k6 v2.1.0.
 
 ## Acceptance results
 
-The final commit-bound availability, booking-throughput, and contention gate
-results will be recorded here after the calibrated threshold and validation
-contracts are committed. This statement is deliberately pending; the earlier
-harness-development runs are not the Phase 4 acceptance record.
+The final acceptance runs used test-repository commit
+`50224cada92517ae10198a9ec7472e7eec1709bc`, which contains the exact harness,
+calibrated threshold, and Phase 4 static contracts.
+
+- Availability passed with p95 **1,408.838 ms** against the 2,300 ms gate and
+  zero application errors across 924 measured calls. Its raw HTTP set contained
+  942 calls including warm-up traffic, also with zero failures.
+- Booking throughput completed **50 of 50** unique-slot bookings with zero
+  application errors and zero cleanup errors. The booking request p95 was
+  2,725.477 ms; it is retained as a measurement, not presented as a calibrated
+  gate or production target. All 101 HTTP calls, including slot discovery and
+  supported cancellations, succeeded.
+- Contention produced exactly **1 success, 19 expected conflicts, and 1
+  persisted booking**, with zero unexpected responses, persistence errors, or
+  cleanup errors. Contention request p95 was 3,543.231 ms and is informational.
+  k6 reports a generic HTTP failure rate of 82.61% because the 19 expected
+  HTTP 400/409 conflict responses are non-success statuses; the contention
+  integrity metrics classify and gate those responses separately.
+
+The availability and booking run produced four passing JUnit threshold cases.
+The contention run produced six passing JUnit threshold cases. Both JUnit files
+use the stable `caldiy-performance-gates` suite name and contain zero failures.
 
 ## Evidence and reporting
 
