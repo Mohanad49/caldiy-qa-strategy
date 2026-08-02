@@ -7,6 +7,11 @@ The workflow continues to exercise Cal.diy `v6.2.0` at commit
 public infrastructure. API v2 is rebuilt inside each permitted GitHub runner
 from the exact source commit. Buildx reuses GitHub Actions cache layers, but the
 `UNLICENSED` image is never pushed to a registry or uploaded as an artifact.
+Because the workflow invokes Buildx from a shell script, it uses the
+[Docker-documented runtime helper](https://docs.docker.com/build/cache/backends/gha/#authentication)
+at an immutable commit to expose the cache service URL and token. The build
+fails closed when those runtime variables are absent instead of silently
+recompiling without the declared dependency cache.
 
 ## Tiers
 

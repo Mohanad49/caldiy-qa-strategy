@@ -43,6 +43,10 @@ docker buildx inspect --bootstrap | grep -E '^Driver:[[:space:]]+docker-containe
   printf 'A CI API build must load the image, write the cache, or both.\n' >&2
   exit 2
 }
+[[ -n "${ACTIONS_RESULTS_URL:-}" && -n "${ACTIONS_RUNTIME_TOKEN:-}" ]] || {
+  printf 'GitHub Actions cache runtime variables are unavailable; refusing an uncached CI build.\n' >&2
+  exit 1
+}
 
 mkdir -p "${log_dir}"
 

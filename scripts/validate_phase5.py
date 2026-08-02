@@ -62,6 +62,11 @@ def main() -> None:
     validate_action_pins(quality, "quality workflow")
     validate_action_pins(pages, "Pages workflow")
     validate_action_pins(action, "API composite action")
+    runtime_helper = (
+        "crazy-max/ghaction-github-runtime@"
+        "04d248b84655b509d8c44dc1d6f990c879747487"
+    )
+    require(runtime_helper in action, "GitHub cache runtime helper pin changed or is missing")
 
     for trigger in ("pull_request:", "push:", "schedule:", "workflow_dispatch:"):
         require(trigger in quality, f"tiered workflow trigger missing: {trigger}")
@@ -123,6 +128,8 @@ def main() -> None:
         "accepted_heap=8192",
         "accepted_heap=6144",
         'redistributable}" == "false"',
+        'ACTIONS_RESULTS_URL:-',
+        'ACTIONS_RUNTIME_TOKEN:-',
     ):
         require(contract in api_build, f"CI API build contract missing: {contract}")
     require(
