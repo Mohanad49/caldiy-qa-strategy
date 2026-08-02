@@ -1,0 +1,36 @@
+name: Build runner-local API v2 image
+description: Restore Buildx layers and load the non-distributable Cal.diy API v2 image.
+
+inputs:
+  heap_mb:
+    description: Accepted heap from the prewarm job; empty permits the documented OOM fallback.
+    required: false
+    default: ""
+
+outputs:
+  heap_mb:
+    description: Heap used by the accepted runner-local image.
+    value: ${{ steps.build.outputs.heap_mb }}
+
+runs:
+  using: composite
+  steps:
+    - name: Check out the exact public Cal.diy source snapshot
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        repository: calcom/cal.diy
+        ref: 1c193cca8682b33b9866c792186033f7ef886682
+        path: .cache/cal-diy-v6.2.0
+        fetch-depth: 1
+        persist-credentials: false
+
+    - name: Set up Buildx
+      uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+
+    - name: Build from the GitHub Actions layer cache without publishing
+      id: build
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      env:
+        CI_API_BUILD_HEAP_MB: ${{ inputs.heap_mb }}
+      run: ./scripts/ci-api-build.sh
