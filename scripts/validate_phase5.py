@@ -41,6 +41,7 @@ def main() -> None:
         "docs/PHASE-5-CI.md",
         "playwright.merge.config.ts",
         "scripts/ci-api-build.sh",
+        "scripts/ci-free-disk.sh",
         "scripts/ci-sut-bootstrap.sh",
         "scripts/current-upstream-advisory.sh",
         "scripts/current_upstream_contract_advisory.py",
@@ -114,6 +115,7 @@ def main() -> None:
     require('"allure-commandline": "2.43.0"' in read("package.json"), "Allure CLI pin changed")
 
     api_build = read("scripts/ci-api-build.sh")
+    disk_cleanup = read("scripts/ci-free-disk.sh")
     for contract in (
         "--cache-from \"type=gha,scope=${cache_scope}\"",
         "--cache-to \"type=gha,scope=${cache_scope},mode=max\"",
@@ -123,6 +125,20 @@ def main() -> None:
         'redistributable}" == "false"',
     ):
         require(contract in api_build, f"CI API build contract missing: {contract}")
+    require(
+        'android_root="/usr/local/lib/android"' in disk_cleanup,
+        "CI disk cleanup target changed",
+    )
+    require(
+        '"${RUNNER_ENVIRONMENT:-}" == "github-hosted"' in disk_cleanup
+        and '"${RUNNER_OS:-}" == "Linux"' in disk_cleanup,
+        "CI disk cleanup lost its ephemeral hosted-Linux guard",
+    )
+    require(
+        "./scripts/ci-free-disk.sh" in action
+        and action.index("./scripts/ci-free-disk.sh") < action.index("./scripts/ci-api-build.sh"),
+        "hosted-runner disk cleanup must run before the API build",
+    )
     combined = "\n".join((quality, action, api_build))
     for forbidden in ("docker push", "push: true", "ghcr.io", "docker.io/"):
         require(forbidden not in combined, f"CI attempts to distribute API image via {forbidden}")
