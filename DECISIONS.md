@@ -309,3 +309,100 @@ implementation.
   no longer reproduces.
 - **Evidence:** `CALDIY-LOCAL-001` through `CALDIY-LOCAL-004` and the explicit
   provenance boundary in each report.
+
+## Phase 4 decisions
+
+Mohanad approved the five **Decision** statements on 2026-08-03. The surrounding
+context, consequences, and evidence record the Phase 4 implementation.
+
+### D-019 — Preserve the real local traffic controls
+
+- **Status:** Accepted
+- **Context:** The official seed API key is limited to 120 requests per minute,
+  while public slot discovery can identify independent callers without an API
+  key.
+- **Decision:** I preserve Cal.diy's tracked rate-limit behavior: availability
+  uses a distinct public client ID per virtual user, authenticated scenarios
+  wait for the official seed key's real budget, and the harness does not change
+  Redis, database, or runtime rate-limit state to make a run pass.
+- **Rejected alternative:** Flush Redis, insert a rate-limit override, or run
+  authenticated load fast enough to measure throttling instead of the intended
+  booking behavior.
+- **Consequences:** Authenticated scenarios are deliberately bounded and can
+  wait for a budget reset; their throughput is a local functional gate rather
+  than a maximum-capacity benchmark.
+- **Evidence:** The budget preflight, 120-request-per-minute observation, local
+  target contract, and accepted runs without a rate-limit override.
+
+### D-020 — Calibrate from the worst complete baseline run
+
+- **Status:** Accepted
+- **Context:** A single workstation run is noisy, and a local Docker threshold
+  cannot establish a production objective.
+- **Decision:** I set the availability gate to the larger of 500 ms or 125% of
+  the worst p95 across five complete baseline runs, rounded up to 50 ms, and I
+  describe the resulting 2,300 ms value as a local amd64 Docker threshold—not a
+  production SLO.
+- **Rejected alternative:** Select the fastest or average run, invent a round
+  threshold before measurement, or present workstation latency as a production
+  promise.
+- **Consequences:** One slower but valid baseline run influences the gate;
+  recalibration requires another complete five-run evidence set on a controlled
+  environment.
+- **Evidence:** Five zero-error p95 values of 894.964, 1,811.045, 705.000,
+  1,003.723, and 535.255 ms and the checked-in formula result.
+
+### D-021 — Keep throughput data functionally independent
+
+- **Status:** Accepted
+- **Context:** Reusing a slot or attendee would turn expected booking conflicts
+  into apparent transport/application failures and would not measure the
+  intended booking path.
+- **Decision:** I use 50 unique slots and attendee identities for booking
+  throughput, cancel every successful booking through the supported API, and
+  fail the gate on any application or cleanup error.
+- **Rejected alternative:** Rebook the same slot, share attendees across
+  iterations, exceed the seed key's known budget, or delete application rows
+  directly.
+- **Consequences:** The workload exercises independent booking lifecycles and
+  stays within the real local API boundary; cancelled history is removed only
+  by the guarded project reset.
+- **Evidence:** The 50-of-50 accepted run, zero application and cleanup errors,
+  supported cancellations, and successful checkpoint reset.
+
+### D-022 — Gate contention on both response and persistence invariants
+
+- **Status:** Accepted
+- **Context:** Response counts alone cannot prove that only one booking was
+  persisted for a capacity-one slot, and generic k6 HTTP failure metrics count
+  expected conflict statuses as failures.
+- **Decision:** I require exactly one successful response, 19 expected conflict
+  responses, and exactly one persisted booking for the targeted event and
+  instant, while separately requiring zero unexpected, persistence, and cleanup
+  errors.
+- **Rejected alternative:** Accept any mix of non-2xx responses, infer database
+  integrity only from HTTP 201 counts, or fail the scenario merely because k6
+  classifies expected HTTP 400/409 conflicts as generic HTTP failures.
+- **Consequences:** A duplicate response or persisted booking is a critical
+  integrity failure; expected conflicts remain visible without being confused
+  with transport errors.
+- **Evidence:** The accepted 20-way run produced 1 success, 19 conflicts, 1
+  persisted booking, and zero errors in all three negative counters.
+
+### D-023 — Convert only honest gate outcomes to longitudinal test cases
+
+- **Status:** Accepted
+- **Context:** TestPulse can ingest JUnit test cases but does not currently model
+  k6 latency distributions, and Phase 5 owns ingestion and retention policy.
+- **Decision:** I convert only named k6 threshold outcomes into the stable
+  `caldiy-performance-gates` JUnit suite, retain detailed latency distributions
+  and environment metadata as k6 artifacts, and defer TestPulse ingestion until
+  Phase 5.
+- **Rejected alternative:** Turn every metric percentile into a synthetic test
+  case, discard the raw distributions, or send Phase 4 results to TestPulse
+  before the CI ingestion boundary exists.
+- **Consequences:** Future longitudinal history has honest pass/fail semantics,
+  while performance analysis still depends on retained k6 artifacts.
+- **Evidence:** Four passing availability/throughput JUnit cases, six passing
+  contention JUnit cases, gzip raw JSON, summaries, and commit-bound environment
+  metadata.

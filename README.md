@@ -22,7 +22,7 @@ in its [announcement](https://cal.com/blog/cal-com-goes-closed-source-why).
 | 1 | Pinned local environment, test strategy, risk analysis | Implemented |
 | 2 | API v2 automation with pytest and httpx | Implemented |
 | 3 | Playwright E2E, selective Cucumber BDD, accessibility and visual checks | Implemented |
-| 4 | k6 performance and contention gates | Planned |
+| 4 | k6 performance and contention gates | Implemented |
 | 5 | CI, Allure reporting and TestPulse ingestion | Planned |
 | 6 | Verified defect reports and eligible upstream reports | Planned |
 
@@ -36,8 +36,16 @@ and both visual comparisons passed. The accessibility gate intentionally
 remains red: one of three surfaces passed and two failed with three documented
 serious or critical findings. The timezone suite produced one additional local
 snapshot finding. These are local results, not current-upstream or hosted
-Cal.com claims; none has been filed upstream. Performance results remain
-planned.
+Cal.com claims; none has been filed upstream.
+
+Phase 4 established a five-run local availability baseline and a 2,300 ms p95
+gate. The commit-bound acceptance run passed at 1,408.838 ms p95 with zero
+application errors across 924 measured calls. The throughput run completed 50
+of 50 unique bookings with zero application or cleanup errors. Twenty-way
+contention produced exactly one success, 19 expected conflicts, and one
+persisted booking, with zero unexpected, persistence, or cleanup errors. These
+are local amd64 Docker results, not production SLOs or public-infrastructure
+load results.
 
 [TestPulse](https://github.com/Mohanad49/testpulse) is already a separate,
 publicly available project. Only this repository's report ingestion into
@@ -76,6 +84,14 @@ make test-a11y
 make update-snapshots CONFIRM=caldiy-qa-strategy
 ```
 
+Phase 4 local performance commands:
+
+```text
+make perf-baseline
+make test-perf
+make test-contention
+```
+
 The API v2 image is built locally from the exact controlled commit and is not
 redistributable. It must not be pushed to a container registry.
 
@@ -92,5 +108,6 @@ They must never be reused for a deployed environment or treated as secrets.
 - `docs/API-V2-RUNTIME.md` — exact-source build and runtime qualification evidence
 - `docs/API-AUTOMATION.md` — client design, contract policy, coverage and local results
 - `docs/PHASE-3-EVIDENCE.md` — measured browser, timezone, accessibility and visual results
+- `docs/PHASE-4-EVIDENCE.md` — measured local performance and contention results
 - `docs/findings/` — snapshot-specific compatibility findings requiring current-upstream verification
 - `DECISIONS.md` — decisions written or approved by Mohanad after each phase
