@@ -17,6 +17,7 @@ required_files=(
   docs/API-V2-RUNTIME.md
   docs/PHASE-3-EVIDENCE.md
   docs/PHASE-4-EVIDENCE.md
+  docs/PHASE-5-CI.md
   infra/compose.yml
   infra/api-v2.Dockerfile
   pyproject.toml
@@ -30,6 +31,8 @@ required_files=(
   cucumber.mjs
   scripts/validate_phase3.py
   scripts/validate_phase4.py
+  scripts/validate_phase5.py
+  playwright.merge.config.ts
   perf/thresholds.json
   perf/fixture.example.json
   contracts/api-v2/openapi-v6.2.0.json
@@ -102,6 +105,14 @@ UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen python scripts/validate_ph
   fail 'Phase 3 static contracts failed'
 UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen python scripts/validate_phase4.py || \
   fail 'Phase 4 static contracts failed'
+UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen ruff check \
+  scripts/merge_junit.py scripts/current_upstream_contract_advisory.py \
+  scripts/validate_phase5.py || fail 'Phase 5 Python lint failed'
+MYPYPATH="${repo_root}/src" UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen mypy \
+  scripts/merge_junit.py scripts/current_upstream_contract_advisory.py || \
+  fail 'Phase 5 Python type checks failed'
+UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen python scripts/validate_phase5.py || \
+  fail 'Phase 5 static contracts failed'
 
 fixture_path="${repo_root}/perf/fixture.example.json"
 for k6_script in availability.js booking-throughput.js contention.js; do
