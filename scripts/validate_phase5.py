@@ -118,8 +118,8 @@ def main() -> None:
     disk_cleanup = read("scripts/ci-free-disk.sh")
     for contract in (
         "--cache-from \"type=gha,scope=${cache_scope}\"",
-        "--cache-to \"type=gha,scope=${cache_scope},mode=max\"",
-        "--load",
+        "outputs+=(--cache-to \"type=gha,scope=${cache_scope},mode=max\")",
+        "outputs+=(--load)",
         "accepted_heap=8192",
         "accepted_heap=6144",
         'redistributable}" == "false"',
@@ -138,6 +138,14 @@ def main() -> None:
         "./scripts/ci-free-disk.sh" in action
         and action.index("./scripts/ci-free-disk.sh") < action.index("./scripts/ci-api-build.sh"),
         "hosted-runner disk cleanup must run before the API build",
+    )
+    require(
+        'load_image: "false"' in quality and 'write_cache: "true"' in quality,
+        "prewarm job must write cache layers without loading the runtime image",
+    )
+    require(
+        "CI_API_BUILD_LOAD" in action and "CI_API_CACHE_WRITE" in action,
+        "API composite action does not expose the cache/load boundary",
     )
     combined = "\n".join((quality, action, api_build))
     for forbidden in ("docker push", "push: true", "ghcr.io", "docker.io/"):

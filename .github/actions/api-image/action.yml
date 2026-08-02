@@ -6,6 +6,14 @@ inputs:
     description: Accepted heap from the prewarm job; empty permits the documented OOM fallback.
     required: false
     default: ""
+  load_image:
+    description: Load and verify the runtime image in runner-local Docker.
+    required: false
+    default: "true"
+  write_cache:
+    description: Export Buildx layers to the GitHub Actions cache.
+    required: false
+    default: "false"
 
 outputs:
   heap_mb:
@@ -37,4 +45,6 @@ runs:
       working-directory: ${{ github.workspace }}
       env:
         CI_API_BUILD_HEAP_MB: ${{ inputs.heap_mb }}
+        CI_API_BUILD_LOAD: ${{ inputs.load_image }}
+        CI_API_CACHE_WRITE: ${{ inputs.write_cache }}
       run: ./scripts/ci-api-build.sh

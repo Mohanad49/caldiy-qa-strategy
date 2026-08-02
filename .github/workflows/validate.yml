@@ -55,10 +55,16 @@ jobs:
       - name: Build exact-source API image into runner-local Docker
         id: api_image
         uses: ./.github/actions/api-image
+        with:
+          load_image: "false"
+          write_cache: "true"
       - name: Confirm no distributable image was published
         run: |
-          test "$(docker image inspect --format '{{index .Config.Labels "io.caldiy.qa.redistributable"}}' caldiy-api-v2:6.2.0-local)" = "false"
-          echo "API v2 was loaded only into this ephemeral runner; no registry output was configured." >> "$GITHUB_STEP_SUMMARY"
+          if docker image inspect caldiy-api-v2:6.2.0-local >/dev/null 2>&1; then
+            echo "::error::The cache-only prewarm unexpectedly loaded an API image."
+            exit 1
+          fi
+          echo "API v2 layers were written only to the GitHub Actions cache; no runtime image or registry output was produced." >> "$GITHUB_STEP_SUMMARY"
 
   api:
     name: API smoke, contracts and suite
