@@ -20,6 +20,9 @@ importers:
       '@types/node':
         specifier: 20.17.23
         version: 20.17.23
+      allure-commandline:
+        specifier: 2.43.0
+        version: 2.43.0
       allure-playwright:
         specifier: 3.10.2
         version: 3.10.2(@playwright/test@1.57.0)
@@ -284,6 +287,10 @@ packages:
 
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
+
+  allure-commandline@2.43.0:
+    resolution: {integrity: sha512-nsqccDOgi80fi9WjvBapZjlFlugodVWudotNtWx6XKiSI7NuN6oTWEkXnkxQBzNg02Yf9lZLtCFlKvjAlcpu6Q==}
+    hasBin: true
 
   allure-js-commons@3.10.2:
     resolution: {integrity: sha512-5nAjUF1iNPSQMwKtEsadclSta8C3L705/k/pIzGb9M6P9krgfRaCyaEHt8pkLlCP9NFj5xk3grjtnAhiLeT+Kg==}
@@ -808,6 +815,8 @@ snapshots:
       undici-types: 6.19.8
 
   '@types/normalize-package-data@2.4.4': {}
+
+  allure-commandline@2.43.0: {}
 
   allure-js-commons@3.10.2(allure-playwright@3.10.2(@playwright/test@1.57.0)):
     dependencies:

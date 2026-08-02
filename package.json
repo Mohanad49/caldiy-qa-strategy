@@ -20,6 +20,7 @@
     "@cucumber/cucumber": "13.2.0",
     "@playwright/test": "1.57.0",
     "@types/node": "20.17.23",
+    "allure-commandline": "2.43.0",
     "allure-playwright": "3.10.2",
     "tsx": "4.23.1",
     "typescript": "5.9.3"
