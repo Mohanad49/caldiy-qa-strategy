@@ -281,7 +281,7 @@ jobs:
 
   merge_e2e:
     name: Merge Playwright shards before reporting
-    if: always() && github.event_name != 'pull_request'
+    if: always() && github.event_name != 'pull_request' && needs.e2e_shard.result != 'skipped'
     needs: e2e_shard
     runs-on: ubuntu-latest
     steps:
@@ -619,7 +619,10 @@ jobs:
 
   allure:
     name: Merged Allure report artifact
-    if: always() && github.event_name != 'pull_request'
+    if: >-
+      always() && github.event_name != 'pull_request' &&
+      (needs.api.result != 'skipped' || needs.merge_e2e.result != 'skipped' ||
+      needs.browser_quality.result != 'skipped' || needs.timezone.result != 'skipped')
     needs: [api, api_repeat, merge_e2e, browser_quality, timezone]
     runs-on: ubuntu-latest
     steps:

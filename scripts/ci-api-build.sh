@@ -25,7 +25,7 @@ log_dir="${repo_root}/.cache/ci-api-build"
   printf 'CI source checkout is dirty.\n' >&2
   exit 1
 }
-[[ "$(docker buildx inspect --bootstrap --format '{{.Driver}}')" == "docker-container" ]] || {
+docker buildx inspect --bootstrap | grep -Eq '^Driver:[[:space:]]+docker-container$' || {
   printf 'The CI API build requires the Buildx docker-container driver.\n' >&2
   exit 1
 }
