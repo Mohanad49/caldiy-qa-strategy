@@ -9,7 +9,7 @@ test("@firefox guest booking is confirmed and correlated to the local organizer 
   fixtureManager,
   mailpit
 }, testInfo) => {
-  const manifest = await fixtureManager.create();
+  const manifest = await fixtureManager.create(lifecycleWindow(testInfo.project.name, "booking"));
   const event = firstEventType(manifest);
   const attendee = attendeeFor(testInfo.project.name, testInfo.workerIndex);
   const booking = new BookingPage(guestPage);
@@ -44,7 +44,7 @@ test("@firefox attendee reschedules and receives a correlated lifecycle notifica
   fixtureManager,
   mailpit
 }, testInfo) => {
-  const manifest = await fixtureManager.create();
+  const manifest = await fixtureManager.create(lifecycleWindow(testInfo.project.name, "reschedule"));
   const event = firstEventType(manifest);
   const attendee = attendeeFor(`${testInfo.project.name}-reschedule`, testInfo.workerIndex);
   const booking = new BookingPage(guestPage);
@@ -74,7 +74,7 @@ test("@firefox attendee cancels and receives a correlated lifecycle notification
   fixtureManager,
   mailpit
 }, testInfo) => {
-  const manifest = await fixtureManager.create();
+  const manifest = await fixtureManager.create(lifecycleWindow(testInfo.project.name, "cancel"));
   const event = firstEventType(manifest);
   const attendee = attendeeFor(`${testInfo.project.name}-cancel`, testInfo.workerIndex);
   const booking = new BookingPage(guestPage);
@@ -100,4 +100,24 @@ test("@firefox attendee cancels and receives a correlated lifecycle notification
 function attendeeFor(purpose: string, workerIndex: number): { name: string; email: string } {
   const token = `${purpose}-${workerIndex}-${Date.now()}`.toLowerCase().replace(/[^a-z0-9-]+/g, "-");
   return { name: `QA ${token}`, email: `qa+${token}@example.com` };
+}
+
+function lifecycleWindow(
+  projectName: string,
+  journey: "booking" | "reschedule" | "cancel"
+): { startTime: string; endTime: string } {
+  const browser = projectName.startsWith("firefox") ? "firefox" : "chromium";
+  const windows = {
+    chromium: {
+      booking: { startTime: "09:00", endTime: "10:00" },
+      reschedule: { startTime: "10:00", endTime: "12:00" },
+      cancel: { startTime: "12:00", endTime: "13:00" }
+    },
+    firefox: {
+      booking: { startTime: "13:00", endTime: "14:00" },
+      reschedule: { startTime: "14:00", endTime: "16:00" },
+      cancel: { startTime: "16:00", endTime: "17:00" }
+    }
+  } as const;
+  return windows[browser][journey];
 }
