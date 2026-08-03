@@ -13,7 +13,22 @@ export class BookingPage {
       "x-cal-client-id": "caldiy-qa-local",
       "x-cal-force-slug": "acme"
     });
-    await this.page.goto(path);
+    const statuses: number[] = [];
+    const deadline = Date.now() + 15_000;
+
+    while (true) {
+      const response = await this.page.goto(path, { waitUntil: "domcontentloaded" });
+      const status = response?.status() ?? 0;
+      statuses.push(status);
+      if (status === 200) break;
+      if (status !== 404 || Date.now() >= deadline) {
+        throw new Error(
+          `Booking route ${path} did not become ready; HTTP statuses: ${statuses.join(", ")}`
+        );
+      }
+      await this.page.waitForTimeout(500);
+    }
+
     await expect(this.page.getByTestId("booker-container")).toBeVisible();
   }
 

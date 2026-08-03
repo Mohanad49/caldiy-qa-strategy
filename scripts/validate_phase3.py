@@ -95,6 +95,15 @@ for mask in expected_masks:
     if mask not in visual_source:
         fail(f"expected dynamic visual mask is missing: {mask}")
 
+booking_page_source = read("tests/browser/pages/booking-page.ts")
+for readiness_contract in (
+    "Date.now() + 15_000",
+    "status !== 404",
+    "Booking route ${path} did not become ready; HTTP statuses:",
+):
+    if readiness_contract not in booking_page_source:
+        fail(f"booking-route readiness contract is missing: {readiness_contract}")
+
 update_script = read("scripts/update-snapshots.sh")
 if (
     'expected="caldiy-qa-strategy"' not in update_script
