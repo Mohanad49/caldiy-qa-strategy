@@ -67,6 +67,17 @@ def main() -> None:
         "04d248b84655b509d8c44dc1d6f990c879747487"
     )
     require(runtime_helper in action, "GitHub cache runtime helper pin changed or is missing")
+    buildkit_image = (
+        "moby/buildkit@"
+        "sha256:2f5adac4ecd194d9f8c10b7b5d7bceb5186853db1b26e5abd3a657af0b7e26ec"
+    )
+    require(action.count(buildkit_image) == 2, "BuildKit setup image pin changed")
+    require(
+        action.count("docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c")
+        == 2
+        and "steps.buildx_primary.outcome == 'failure'" in action,
+        "Buildx setup must have exactly one bounded retry",
+    )
 
     for trigger in ("pull_request:", "push:", "schedule:", "workflow_dispatch:"):
         require(trigger in quality, f"tiered workflow trigger missing: {trigger}")

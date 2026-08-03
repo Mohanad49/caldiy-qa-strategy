@@ -13,6 +13,12 @@ at an immutable commit to expose the cache service URL and token. The build
 fails closed when those runtime variables are absent instead of silently
 recompiling without the declared dependency cache.
 
+The Buildx action boots an immutable BuildKit index at
+`sha256:2f5adac4ecd194d9f8c10b7b5d7bceb5186853db1b26e5abd3a657af0b7e26ec`.
+One annotated setup retry is permitted only when that pre-build infrastructure
+step fails. Test execution, image compilation, contract validation, and product
+assertions are never retried.
+
 ## Tiers
 
 Pull requests run repository validation, a live API v2 smoke check, and the 18
