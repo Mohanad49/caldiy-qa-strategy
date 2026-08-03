@@ -118,7 +118,11 @@ def main() -> None:
         prefix = quality[max(0, position - 450) : position]
         require("continue-on-error: true" in prefix, "TestPulse ingestion is not non-blocking")
     require("pull_request" in quality, "pull-request tier is missing")
-    require("if: github.event_name != 'pull_request'" in quality, "main-only ingestion boundary is missing")
+    require("github.event_name != 'pull_request'" in quality, "pull-request ingestion boundary is missing")
+    require(
+        quality.count("github.ref == 'refs/heads/main'") == 10,
+        "every TestPulse presence and ingestion step must require the main branch",
+    )
     require("set -x" not in quality, "workflow enables shell tracing around secrets")
     require(
         not re.search(r"echo[^\n]*\$\{?TESTPULSE_DATABASE_URL", quality),

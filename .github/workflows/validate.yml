@@ -122,7 +122,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
       - name: Check whether the TestPulse secret exists
-        if: always() && github.event_name != 'pull_request'
+        if: always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         id: testpulse_secret
         shell: bash
         env:
@@ -135,7 +135,7 @@ jobs:
             echo "::warning::TESTPULSE_DATABASE_URL is absent; API results were not ingested."
           fi
       - name: Ingest first API run into TestPulse
-        if: always() && steps.testpulse_secret.outputs.present == 'true' && steps.api_runs.outputs.run_1_report == 'true'
+        if: always() && github.ref == 'refs/heads/main' && steps.testpulse_secret.outputs.present == 'true' && steps.api_runs.outputs.run_1_report == 'true'
         continue-on-error: true
         uses: Mohanad49/testpulse@2696d715e7b18f2ef029e291f37371d6b4bb01fb
         with:
@@ -189,7 +189,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
       - name: Check whether the TestPulse secret exists
-        if: always()
+        if: always() && github.ref == 'refs/heads/main'
         id: testpulse_secret
         shell: bash
         env:
@@ -202,7 +202,7 @@ jobs:
             echo "::warning::TESTPULSE_DATABASE_URL is absent; repeated API results were not ingested."
           fi
       - name: Ingest repeated same-commit API run into TestPulse
-        if: always() && steps.api_repeat_run.outcome != 'skipped' && steps.testpulse_secret.outputs.present == 'true'
+        if: always() && github.ref == 'refs/heads/main' && steps.api_repeat_run.outcome != 'skipped' && steps.testpulse_secret.outputs.present == 'true'
         continue-on-error: true
         uses: Mohanad49/testpulse@2696d715e7b18f2ef029e291f37371d6b4bb01fb
         with:
@@ -331,7 +331,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
       - name: Check whether the TestPulse secret exists
-        if: always()
+        if: always() && github.ref == 'refs/heads/main'
         id: testpulse_secret
         shell: bash
         env:
@@ -344,7 +344,7 @@ jobs:
             echo "::warning::TESTPULSE_DATABASE_URL is absent; merged E2E results were not ingested."
           fi
       - name: Ingest only the merged Playwright report into TestPulse
-        if: always() && steps.merge.outcome == 'success' && steps.testpulse_secret.outputs.present == 'true'
+        if: always() && github.ref == 'refs/heads/main' && steps.merge.outcome == 'success' && steps.testpulse_secret.outputs.present == 'true'
         continue-on-error: true
         uses: Mohanad49/testpulse@2696d715e7b18f2ef029e291f37371d6b4bb01fb
         with:
@@ -426,7 +426,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
       - name: Check whether the TestPulse secret exists
-        if: always()
+        if: always() && github.ref == 'refs/heads/main'
         id: testpulse_secret
         shell: bash
         env:
@@ -439,7 +439,7 @@ jobs:
             echo "::warning::TESTPULSE_DATABASE_URL is absent; BDD results were not ingested."
           fi
       - name: Ingest BDD JUnit into TestPulse
-        if: always() && steps.testpulse_secret.outputs.present == 'true'
+        if: always() && github.ref == 'refs/heads/main' && steps.testpulse_secret.outputs.present == 'true'
         continue-on-error: true
         uses: Mohanad49/testpulse@2696d715e7b18f2ef029e291f37371d6b4bb01fb
         with:
@@ -559,7 +559,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
       - name: Check whether the TestPulse secret exists
-        if: always()
+        if: always() && github.ref == 'refs/heads/main'
         id: testpulse_secret
         shell: bash
         env:
@@ -572,7 +572,7 @@ jobs:
             echo "::warning::TESTPULSE_DATABASE_URL is absent; performance gates were not ingested."
           fi
       - name: Ingest performance gate outcomes into TestPulse
-        if: always() && steps.merge_performance.outcome == 'success' && steps.testpulse_secret.outputs.present == 'true'
+        if: always() && github.ref == 'refs/heads/main' && steps.merge_performance.outcome == 'success' && steps.testpulse_secret.outputs.present == 'true'
         continue-on-error: true
         uses: Mohanad49/testpulse@2696d715e7b18f2ef029e291f37371d6b4bb01fb
         with:
