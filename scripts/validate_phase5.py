@@ -151,6 +151,10 @@ def main() -> None:
         "prewarm job must write cache layers without loading the runtime image",
     )
     require(
+        quality.count("needs: [prewarm_api, api]") == 3,
+        "manual-only cache consumers must wait for the core API job",
+    )
+    require(
         "CI_API_BUILD_LOAD" in action and "CI_API_CACHE_WRITE" in action,
         "API composite action does not expose the cache/load boundary",
     )
@@ -192,7 +196,10 @@ def main() -> None:
     for statement in (
         "not a production slo",
         "no ci badge",
-        "workflow has not yet run",
+        "30774193183",
+        "13 tests with zero failures",
+        "15 tests with zero failures",
+        "testpulse ingestion was visibly skipped",
         "never targets hosted cal.com",
         "enable_allure_pages=true",
     ):
