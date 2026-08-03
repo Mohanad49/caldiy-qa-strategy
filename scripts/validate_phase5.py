@@ -207,7 +207,8 @@ def main() -> None:
     for statement in (
         "not a production slo",
         "no ci badge",
-        "30774193183",
+        "30778631910",
+        "30777108027",
         "13 tests with zero failures",
         "15 tests with zero failures",
         "testpulse ingestion was visibly skipped",

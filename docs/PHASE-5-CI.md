@@ -79,54 +79,72 @@ annotation and workflow-summary failure record.
 
 ## Current evidence
 
-Push-tier run
-[`30774193183`](https://github.com/Mohanad49/caldiy-qa-strategy/actions/runs/30774193183)
-executed commit `a2e0d3412aa31bab08ea54c7455206e4937f9ba8` from the private
+Push-tier verification run
+[`30778631910`](https://github.com/Mohanad49/caldiy-qa-strategy/actions/runs/30778631910)
+executed commit `9088b0d6c23ac81c2641848e9b2436aa450f1337` from the private
 repository. Repository contracts, the warm cache prebuild, the 13-test API
 suite, all four Playwright shards, the required four-blob merge, and the merged
-Allure artifact succeeded. The merged E2E report contains 15 tests with zero
-failures; the API report contains 13 tests with zero failures; Cucumber contains
-three scenarios with zero failures.
+Allure artifact succeeded. The API report contains 13 tests with zero failures;
+the merged E2E report contains 15 tests with zero failures; and Cucumber
+contains three scenarios with zero failures.
 
-The browser-quality job failed and remains evidence, not noise. Axe reported
-the two already documented serious/critical failures while the cancellation
-panel passed. Both visual comparisons failed because the committed macOS
-baselines render text differently on the hosted Linux Chromium runner. The
-Linux actual, expected, diff, trace, screenshot, and video files are retained
-in the 14-day failure artifact. They are not promoted to baselines without the
-guarded snapshot confirmation.
+The browser-quality job failed and remains evidence, not noise. One of three
+axe surfaces passed; the other two contain the already documented
+serious/critical findings. Both visual comparisons failed because the committed
+macOS baselines render text differently on the hosted Linux Chromium runner.
+The Linux actual, expected, diff, trace, screenshot, and video files are
+retained in the 14-day failure artifact. They are not promoted to baselines
+without the guarded snapshot confirmation.
 
 Run
 [`30772862158`](https://github.com/Mohanad49/caldiy-qa-strategy/actions/runs/30772862158)
 proved the first authenticated cache export and exposed a test-isolation defect:
 parallel Chromium and Firefox lifecycle tests selected the same organizer slot.
 The tests now create non-overlapping schedule windows by journey and browser;
-the two shards that failed in that run passed in `30774193183`.
+the two shards that failed in that run passed in `30778631910`.
 
 The first authenticated cache export took 17 minutes 7 seconds. The next warm
 prebuild took 1 minute 16 seconds. Consumer jobs showed Buildx steps 8 through
 14 as `CACHED`, loaded the 8,192 MB-heap image locally, and never published it.
 
 Manual-tier run
-[`30774902565`](https://github.com/Mohanad49/caldiy-qa-strategy/actions/runs/30774902565)
-passed the 13-test pinned-oracle timezone matrix with `tzdata==2026.3`, a second
-13-test API run on the same commit, and all local-only k6 gates. Hosted-runner
-availability measured 451.09 ms p95 with 0/1,080 application errors against the
-existing 2,300 ms local-Docker threshold. Booking throughput completed 50/50
-with zero booking or cleanup errors. Contention produced one success, 19
+[`30777108027`](https://github.com/Mohanad49/caldiy-qa-strategy/actions/runs/30777108027)
+proved the two-wave dependency on commit
+`93eeeca6cf195025249c644ac707ba4d84642021`. The six core consumers started
+between 01:34:56 and 01:35:03 UTC. The core API job passed at 01:44:21; only
+then did timezone, repeated API, and k6 start at 01:44:24. Those three jobs all
+passed, as did all four core Playwright shards, the four-blob merge, and both
+API runs.
+
+The manual-only evidence contains a 13-test pinned-oracle timezone matrix with
+`tzdata==2026.3` and a second 13-test API run on the same commit. Hosted-runner
+availability measured 320.39 ms p95 with 0/1,090 application errors against
+the existing 2,300 ms local-Docker threshold. Booking throughput completed
+50/50 with zero booking or cleanup errors. Contention produced one success, 19
 expected conflicts, one persisted booking, and zero persistence or cleanup
-errors.
+errors. The merged performance JUnit contains ten passing threshold cases.
 
 The same run compared 18 controlled operations with public Cal.diy `main` at
 `038381aeca6261635357957d66b8ba85cdb29737`: nine were unchanged, nine changed,
 and none was missing. This advisory is not evidence about hosted Cal.com.
 
-That run deliberately ended as cancelled after all manual-only gates completed:
-nine concurrent cache consumers starved the duplicate core API import for 19
-minutes. The workflow now retains the proven six-consumer push wave and starts
-the three manual-only SUT jobs only after the core API job. The cancelled run is
-manual-tier evidence for the completed jobs, not a successful overall workflow
-conclusion.
+The manual run's browser-quality results are not accepted as accessibility or
+visual evidence. All three BDD, all three axe, and both visual cases received a
+404 for freshly created booking routes. The retained trace proved the route
+response, while the API fixtures themselves were created successfully. Commit
+`9088b0d6c23ac81c2641848e9b2436aa450f1337` added a bounded 404-only route
+readiness contract: it does not rerun scenarios or assertions, fails immediately
+on any non-404 error, and records the observed status sequence on timeout. Push
+run `30778631910` then restored the valid three-of-three BDD, one-of-three axe,
+and zero-of-two visual pattern under the six-consumer fan-out.
+
+Earlier manual run
+[`30774902565`](https://github.com/Mohanad49/caldiy-qa-strategy/actions/runs/30774902565)
+was cancelled after its manual-only gates passed because nine concurrent cache
+consumers starved a duplicate core API import for 19 minutes. That run exposed
+the scheduling defect; `30777108027` is the runtime proof of the corrected
+two-wave dependency. Neither red/cancelled run is described as a successful
+overall workflow conclusion.
 
 `TESTPULSE_DATABASE_URL` and `ENABLE_ALLURE_PAGES` are absent. Accordingly,
 TestPulse ingestion was visibly skipped and Pages remains disabled. No
@@ -136,8 +154,11 @@ claimed. No CI badge is added. The repository remains private.
 ## Known limitations
 
 The private hosted runner must load a roughly 4.9 GB API image. An authenticated
-prewarmed cache removes repeated compilation but still takes roughly three to
-five minutes to restore/import under six-way fan-out, before stack bootstrap.
+prewarmed cache removes repeated compilation but still took roughly three to
+ten minutes to restore/import in the observed fan-outs, before stack bootstrap.
+In `30777108027`, the second-wave repeated API job took 17 minutes 35 seconds
+end to end. This is a CI-efficiency limitation, not a production performance
+result.
 The workflow reclaims only the hosted image's unused Android SDK and records
 disk usage before and after. Failure at either the upstream 8,192 MB heap or the
 documented 6,144 MB OOM fallback remains a real CI infrastructure failure; the
