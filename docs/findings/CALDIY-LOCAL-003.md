@@ -15,4 +15,6 @@ Run `make test-a11y` against the complete local stack and inspect `guest-details
 
 Low-vision users may be unable to read required booking-form labels, inputs, supporting copy, or legal links. Axe establishes the contrast measurements; visual review under additional display and theme conditions remains necessary.
 
-No rule or element is suppressed. The finding is limited to the historical snapshot and must be reproduced against current Cal.diy before any upstream report.
+No rule or element is suppressed. The Phase 6 audit did not exercise the
+current Cal.diy UI, so this historical finding remains local and was not filed
+upstream. Its disposition is recorded in `docs/defects/README.md`.

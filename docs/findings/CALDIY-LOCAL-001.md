@@ -8,7 +8,10 @@
 - **Oracle:** Python `zoneinfo` forced to the committed `tzdata==2026.3` package
 - **Risk area:** Timezone/DST availability correctness
 
-This finding applies only to the controlled historical snapshot. It is not a claim about hosted Cal.com or current Cal.diy. Phase 6 must reproduce it against current Cal.diy and search for duplicates before any upstream report.
+This finding applies only to the controlled historical snapshot. It is not a
+claim about hosted Cal.com or current Cal.diy. The Phase 6 audit did not run the
+current Cal.diy scheduling runtime, so this behavior remains ineligible for an
+upstream report. Its disposition is recorded in `docs/defects/README.md`.
 
 ## Reproduction
 

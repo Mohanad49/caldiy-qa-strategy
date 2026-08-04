@@ -20,4 +20,6 @@ The response validator first evaluates the unmodified pinned schema. It then app
 
 ## Filing policy
 
-Phase 6 must reproduce the mismatch against current Cal.diy and search for duplicate reports before any upstream filing. Until then it remains a versioned local compatibility finding.
+The Phase 6 audit did not reproduce the current runtime response after
+isolating the separately filed F-002 type defect. This historical compatibility
+finding remains local and was not filed upstream. See `docs/defects/README.md`.

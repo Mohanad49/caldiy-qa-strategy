@@ -21,4 +21,6 @@ On both surfaces, axe identifies the `role="switch"` element with `data-testid` 
 
 A screen-reader user can encounter an unnamed switch and cannot determine what state it controls. The automated result establishes the missing accessible name; manual assistive-technology testing is still required before assigning production severity.
 
-No rule or element is suppressed. Phase 6 must reproduce against current Cal.diy and search for duplicates before any upstream report.
+No rule or element is suppressed. The Phase 6 audit did not exercise the
+current Cal.diy UI, so this historical accessibility finding was not filed
+upstream. Its disposition is recorded in `docs/defects/README.md`.

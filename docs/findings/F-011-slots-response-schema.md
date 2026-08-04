@@ -20,4 +20,6 @@ The validator first evaluates the unmodified pinned schema. Its known-defect pro
 
 ## Filing policy
 
-Phase 6 must reproduce the mismatch against current Cal.diy and search for duplicate reports before any upstream filing. Until then it remains a versioned local compatibility finding.
+The same schema condition remains in the Phase 6 current-main audit, but the
+current runtime response was not reproduced. This historical finding remains
+local and was not filed upstream. See `docs/defects/README.md`.

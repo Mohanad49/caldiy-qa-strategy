@@ -23,4 +23,7 @@ Tools that require a globally valid OpenAPI document cannot consume this snapsho
 
 ## Filing policy
 
-Phase 6 must first reproduce this against current Cal.diy, search for duplicates, and then decide whether an upstream report is still eligible. Until then it remains a versioned local compatibility finding.
+The Phase 6 current-main audit found that the affected route is absent at
+commit `8418db70c71e5364e6baf26275aafa10e6bc9bd7`. This historical compatibility
+finding was not filed upstream because its faulty contract condition is no
+longer present. See `docs/defects/README.md`.

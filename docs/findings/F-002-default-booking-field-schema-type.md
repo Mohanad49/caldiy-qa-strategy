@@ -25,4 +25,7 @@ Schema generators and validators can reject the document or generate an object-s
 
 ## Filing policy
 
-Phase 6 must reproduce the mismatch against current Cal.diy and search for duplicate reports before any upstream filing. Until then it remains a versioned local compatibility finding.
+Phase 6 reproduced the mismatch in current public Cal.diy source and OpenAPI at
+commit `8418db70c71e5364e6baf26275aafa10e6bc9bd7`, found no matching issue or pull
+request, and filed [calcom/cal.diy#29904](https://github.com/calcom/cal.diy/issues/29904).
+The current report is `docs/defects/DEFECT-002-default-booking-field-type.md`.

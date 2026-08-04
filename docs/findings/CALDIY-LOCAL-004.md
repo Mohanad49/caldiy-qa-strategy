@@ -15,4 +15,6 @@ Run `make test-a11y` and inspect `guest-details-axe.json`. The Terms and Privacy
 
 Users who cannot reliably distinguish color may not recognize the two legal destinations as links before hover or focus. Keyboard and screen-reader behavior should also be checked manually before production severity is assigned.
 
-No rule or element is suppressed. The finding is limited to the historical snapshot and must be reproduced against current Cal.diy before any upstream report.
+No rule or element is suppressed. The Phase 6 audit did not exercise the
+current Cal.diy UI, so this historical finding remains local and was not filed
+upstream. Its disposition is recorded in `docs/defects/README.md`.

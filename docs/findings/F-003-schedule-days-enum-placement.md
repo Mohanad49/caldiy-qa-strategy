@@ -20,4 +20,7 @@ The response validator still evaluates the unmodified pinned schema. It classifi
 
 ## Filing policy
 
-Phase 6 must reproduce the mismatch against current Cal.diy and search for duplicate reports before any upstream filing. Until then it remains a versioned local compatibility finding.
+The Phase 6 current-main audit found no weekday enum attached to an array at
+commit `8418db70c71e5364e6baf26275aafa10e6bc9bd7`. This historical compatibility
+finding was not filed upstream because its faulty contract condition is no
+longer present. See `docs/defects/README.md`.
