@@ -39,6 +39,8 @@ def main() -> None:
         ".github/workflows/validate.yml",
         ".github/workflows/pages.yml",
         "docs/PHASE-5-CI.md",
+        "docs/MAINTENANCE.md",
+        "docs/PUBLIC-RELEASE.md",
         "playwright.merge.config.ts",
         "scripts/ci-api-build.sh",
         "scripts/ci-free-disk.sh",
@@ -52,9 +54,11 @@ def main() -> None:
         path = ROOT / relative
         require(path.is_file() and path.stat().st_size > 0, f"missing or empty {relative}")
 
+    parsed_documents: dict[Path, object] = {}
     for path in (QUALITY, PAGES, ACTION):
         parsed = yaml.safe_load(read(path))
         require(isinstance(parsed, dict), f"{path.name} is not a YAML mapping")
+        parsed_documents[path] = parsed
 
     quality = read(QUALITY)
     pages = read(PAGES)
@@ -78,6 +82,40 @@ def main() -> None:
         and "steps.buildx_primary.outcome == 'failure'" in action,
         "Buildx setup must have exactly one bounded retry",
     )
+    require(
+        quality.count('version: "0.12.1"') == 8,
+        "every setup-uv consumer must use the current pipx-compatible uv pin",
+    )
+
+    quality_document = parsed_documents[QUALITY]
+    require(isinstance(quality_document, dict), "quality workflow is not a mapping")
+    quality_jobs = quality_document.get("jobs")
+    require(isinstance(quality_jobs, dict), "quality workflow has no jobs mapping")
+    expected_timeouts = {
+        "validate": 15,
+        "prewarm_api": 30,
+        "api": 35,
+        "api_repeat": 35,
+        "e2e_shard": 35,
+        "merge_e2e": 15,
+        "browser_quality": 35,
+        "timezone": 35,
+        "performance": 45,
+        "upstream_advisory": 15,
+        "allure": 15,
+    }
+    for job_name, timeout in expected_timeouts.items():
+        job = quality_jobs.get(job_name)
+        require(isinstance(job, dict), f"quality workflow job is malformed: {job_name}")
+        require(job.get("timeout-minutes") == timeout, f"timeout changed for {job_name}")
+
+    pages_document = parsed_documents[PAGES]
+    require(isinstance(pages_document, dict), "Pages workflow is not a mapping")
+    pages_jobs = pages_document.get("jobs")
+    require(isinstance(pages_jobs, dict), "Pages workflow has no jobs mapping")
+    deploy_job = pages_jobs.get("deploy")
+    require(isinstance(deploy_job, dict), "Pages deploy job is malformed")
+    require(deploy_job.get("timeout-minutes") == 15, "Pages deploy timeout changed")
 
     for trigger in ("pull_request:", "push:", "schedule:", "workflow_dispatch:"):
         require(trigger in quality, f"tiered workflow trigger missing: {trigger}")
@@ -222,6 +260,32 @@ def main() -> None:
         "enable_allure_pages=true",
     ):
         require(statement in evidence, f"Phase 5 evidence boundary missing: {statement}")
+
+    for policy in (
+        "zero quarantined tests",
+        "repository maintainer, mohanad",
+        "expiry no later than 14 days",
+        "three consecutive isolated runs of the same commit",
+    ):
+        require(policy in evidence, f"flaky-test policy is incomplete: {policy}")
+
+    maintenance = " ".join(read("docs/MAINTENANCE.md").lower().split())
+    for contract in (
+        "uv` pin is `0.12.1",
+        "periodic clean-room check",
+        "never copy a baseline between platforms",
+        "must never be echoed",
+    ):
+        require(contract in maintenance, f"maintenance contract is missing: {contract}")
+
+    public_release = " ".join(read("docs/PUBLIC-RELEASE.md").lower().split())
+    for contract in (
+        "enable_allure_pages=true",
+        "add a ci badge only after a real quality workflow",
+        "currently grants no reuse license",
+        "not current hosted cal.com",
+    ):
+        require(contract in public_release, f"public-release contract is missing: {contract}")
 
     print("Phase 5 static contracts passed.")
 

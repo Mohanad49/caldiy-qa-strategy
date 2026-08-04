@@ -23,11 +23,12 @@ jobs:
   validate:
     name: Repository contracts
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
-          version: "0.8.17"
+          version: "0.12.1"
           enable-cache: true
       - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
         with:
@@ -48,6 +49,7 @@ jobs:
     name: Prewarm private API v2 Buildx cache
     needs: validate
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     outputs:
       heap_mb: ${{ steps.api_image.outputs.heap_mb }}
     steps:
@@ -70,11 +72,12 @@ jobs:
     name: API smoke, contracts and suite
     needs: prewarm_api
     runs-on: ubuntu-latest
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
-          version: "0.8.17"
+          version: "0.12.1"
           enable-cache: true
       - name: Install locked Python dependencies
         run: uv sync --frozen --python 3.12
@@ -155,11 +158,12 @@ jobs:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     needs: [prewarm_api, api]
     runs-on: ubuntu-latest
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
-          version: "0.8.17"
+          version: "0.12.1"
           enable-cache: true
       - run: uv sync --frozen --python 3.12
       - uses: ./.github/actions/api-image
@@ -220,6 +224,7 @@ jobs:
     if: github.event_name != 'pull_request'
     needs: prewarm_api
     runs-on: ubuntu-latest
+    timeout-minutes: 35
     strategy:
       fail-fast: false
       matrix:
@@ -228,7 +233,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
-          version: "0.8.17"
+          version: "0.12.1"
           enable-cache: true
       - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
         with:
@@ -290,6 +295,7 @@ jobs:
     if: always() && !cancelled() && github.event_name != 'pull_request' && needs.e2e_shard.result != 'skipped'
     needs: e2e_shard
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
@@ -362,11 +368,12 @@ jobs:
     if: github.event_name != 'pull_request'
     needs: prewarm_api
     runs-on: ubuntu-latest
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
-          version: "0.8.17"
+          version: "0.12.1"
           enable-cache: true
       - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
         with:
@@ -461,11 +468,12 @@ jobs:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     needs: [prewarm_api, api]
     runs-on: ubuntu-latest
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
-          version: "0.8.17"
+          version: "0.12.1"
           enable-cache: true
       - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
         with:
@@ -519,11 +527,12 @@ jobs:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     needs: [prewarm_api, api]
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
-          version: "0.8.17"
+          version: "0.12.1"
           enable-cache: true
       - run: uv sync --frozen --python 3.12
       - uses: ./.github/actions/api-image
@@ -594,11 +603,12 @@ jobs:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     needs: validate
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
-          version: "0.8.17"
+          version: "0.12.1"
           enable-cache: true
       - run: uv sync --frozen --python 3.12
       - name: Compare contracts and audit defects without changing the controlled SUT
@@ -638,6 +648,7 @@ jobs:
       needs.browser_quality.result != 'skipped' || needs.timezone.result != 'skipped')
     needs: [api, api_repeat, merge_e2e, browser_quality, timezone]
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
