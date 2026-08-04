@@ -183,7 +183,7 @@ def main() -> None:
         require(browser_gate in quality, f"main browser gate missing: {browser_gate}")
     for nightly_gate in ("make test-timezones", "make test-perf", "make test-contention"):
         require(nightly_gate in quality, f"nightly gate missing: {nightly_gate}")
-    require("current-upstream-advisory.sh" in quality, "current-upstream advisory is missing")
+    require("make defects-audit" in quality, "current-upstream contract and defect advisory is missing")
     require("continue-on-error: true" in quality, "informational/non-blocking steps are missing")
 
     merge_script = read("scripts/merge_junit.py")
