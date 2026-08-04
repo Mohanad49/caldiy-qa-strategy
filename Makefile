@@ -1,6 +1,6 @@
 SHELL := /usr/bin/env bash
 
-.PHONY: help api-build sut-bootstrap sut-smoke sut-api-bootstrap sut-api-smoke sut-down sut-reset test-bootstrap test-api test-e2e test-timezones test-bdd test-a11y update-snapshots perf-baseline test-perf test-contention contracts-verify validate
+.PHONY: help api-build sut-bootstrap sut-smoke sut-api-bootstrap sut-api-smoke sut-down sut-reset test-bootstrap test-api test-e2e test-timezones test-bdd test-a11y update-snapshots perf-baseline test-perf test-contention contracts-verify defects-audit validate
 
 help:
 	@printf '%s\n' \
@@ -22,6 +22,7 @@ help:
 	  'make test-perf                             Run availability and booking throughput gates' \
 	  'make test-contention                       Verify one winner under 20-way slot contention' \
 	  'make contracts-verify                      Verify pinned and live suite operation contracts' \
+	  'make defects-audit                         Audit current public main without testing hosted Cal.com' \
 	  'make validate                              Run repository static validation'
 
 api-build:
@@ -77,6 +78,9 @@ test-contention:
 
 contracts-verify:
 	@./scripts/contracts-verify.sh
+
+defects-audit:
+	@./scripts/current-defect-audit.sh
 
 validate:
 	@./scripts/validate.sh
