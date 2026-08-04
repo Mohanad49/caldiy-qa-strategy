@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parent.parent
 QUALITY = ROOT / ".github/workflows/validate.yml"
 PAGES = ROOT / ".github/workflows/pages.yml"
 ACTION = ROOT / ".github/actions/api-image/action.yml"
+TESTPULSE_ACTION = ROOT / ".github/actions/testpulse-ingest/action.yml"
 
 
 def read(path: Path | str) -> str:
@@ -36,6 +37,7 @@ def validate_action_pins(text: str, label: str) -> None:
 def main() -> None:
     required = (
         ".github/actions/api-image/action.yml",
+        ".github/actions/testpulse-ingest/action.yml",
         ".github/workflows/validate.yml",
         ".github/workflows/pages.yml",
         "docs/PHASE-5-CI.md",
@@ -55,7 +57,7 @@ def main() -> None:
         require(path.is_file() and path.stat().st_size > 0, f"missing or empty {relative}")
 
     parsed_documents: dict[Path, object] = {}
-    for path in (QUALITY, PAGES, ACTION):
+    for path in (QUALITY, PAGES, ACTION, TESTPULSE_ACTION):
         parsed = yaml.safe_load(read(path))
         require(isinstance(parsed, dict), f"{path.name} is not a YAML mapping")
         parsed_documents[path] = parsed
@@ -63,9 +65,11 @@ def main() -> None:
     quality = read(QUALITY)
     pages = read(PAGES)
     action = read(ACTION)
+    testpulse_action = read(TESTPULSE_ACTION)
     validate_action_pins(quality, "quality workflow")
     validate_action_pins(pages, "Pages workflow")
     validate_action_pins(action, "API composite action")
+    validate_action_pins(testpulse_action, "TestPulse composite action")
     runtime_helper = (
         "crazy-max/ghaction-github-runtime@"
         "04d248b84655b509d8c44dc1d6f990c879747487"
@@ -150,20 +154,33 @@ def main() -> None:
         f"unexpected TestPulse suite set: {sorted(set(suites))}",
     )
     require(suites.count("caldiy-api-v2") == 2, "nightly must produce two isolated API ingestions")
-    testpulse_sha = "Mohanad49/testpulse@2696d715e7b18f2ef029e291f37371d6b4bb01fb"
-    require(quality.count(testpulse_sha) == 5, "TestPulse action count or pin changed")
-    for position in [match.start() for match in re.finditer(re.escape(testpulse_sha), quality)]:
+    testpulse_adapter = "uses: ./.github/actions/testpulse-ingest"
+    require(quality.count(testpulse_adapter) == 5, "TestPulse adapter count changed")
+    for position in [match.start() for match in re.finditer(re.escape(testpulse_adapter), quality)]:
         prefix = quality[max(0, position - 450) : position]
         require("continue-on-error: true" in prefix, "TestPulse ingestion is not non-blocking")
+    testpulse_sha = "2696d715e7b18f2ef029e291f37371d6b4bb01fb"
+    require(
+        testpulse_action.count(testpulse_sha) == 1 and "@main" not in testpulse_action,
+        "TestPulse package must be installed from the exact reviewed commit",
+    )
+    require(
+        "::error::TestPulse ingest failed" in testpulse_action
+        and "GITHUB_STEP_SUMMARY" in testpulse_action,
+        "TestPulse failures must remain visible",
+    )
     require("pull_request" in quality, "pull-request tier is missing")
     require("github.event_name != 'pull_request'" in quality, "pull-request ingestion boundary is missing")
     require(
         quality.count("github.ref == 'refs/heads/main'") == 10,
         "every TestPulse presence and ingestion step must require the main branch",
     )
-    require("set -x" not in quality, "workflow enables shell tracing around secrets")
     require(
-        not re.search(r"echo[^\n]*\$\{?TESTPULSE_DATABASE_URL", quality),
+        "set -x" not in quality and "set -x" not in testpulse_action,
+        "TestPulse workflow enables shell tracing around secrets",
+    )
+    require(
+        not re.search(r"echo[^\n]*\$\{?TESTPULSE_DATABASE_URL", quality + testpulse_action),
         "workflow prints the TestPulse secret value",
     )
 

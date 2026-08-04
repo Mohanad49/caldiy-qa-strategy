@@ -1,0 +1,87 @@
+name: Ingest into TestPulse
+description: Commit-pinned, non-blocking TestPulse adapter for Cal.diy reports.
+
+inputs:
+  path:
+    description: JUnit, Playwright JSON, or Allure input path.
+    required: true
+  suite:
+    description: Stable TestPulse suite identity.
+    required: true
+  format:
+    description: TestPulse input format.
+    required: true
+  database-url:
+    description: Shared TestPulse database URL.
+    required: true
+  python-version:
+    description: Python used for the isolated TestPulse tool.
+    required: false
+    default: "3.12"
+
+runs:
+  using: composite
+  steps:
+    - name: Set up isolated TestPulse Python
+      uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install the exact reviewed TestPulse package
+      shell: bash
+      run: >-
+        pipx install
+        "testpulse-core[postgres] @
+        git+https://github.com/Mohanad49/testpulse@2696d715e7b18f2ef029e291f37371d6b4bb01fb#subdirectory=packages/testpulse-core"
+
+    - name: Ingest results
+      id: ingest
+      shell: bash
+      env:
+        TESTPULSE_DATABASE_URL: ${{ inputs.database-url }}
+      run: |
+        set -o pipefail
+        args=(
+          --format "${{ inputs.format }}"
+          --path "${{ inputs.path }}"
+          --suite "${{ inputs.suite }}"
+          --commit "$GITHUB_SHA"
+          --branch "${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}"
+          --ci-run-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+        )
+        set +e
+        output="$(testpulse ingest "${args[@]}" 2>&1)"
+        code=$?
+        set -e
+        printf '%s\n' "$output"
+
+        if [[ $code -eq 3 ]]; then
+          echo "::notice::This TestPulse run was already ingested."
+        elif [[ $code -ne 0 ]]; then
+          echo "::error::TestPulse ingest failed with exit ${code} for suite '${{ inputs.suite }}'. No results were recorded."
+          {
+            echo "### TestPulse ingest failed"
+            echo
+            echo "Suite \`${{ inputs.suite }}\` recorded **nothing** (exit ${code})."
+            echo
+            echo '```text'
+            printf '%s\n' "$output" | tail -20
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit "$code"
+        fi
+
+    - name: Add the TestPulse report to the workflow summary
+      shell: bash
+      env:
+        TESTPULSE_DATABASE_URL: ${{ inputs.database-url }}
+      run: |
+        set +e
+        testpulse report --suite "${{ inputs.suite }}" --output testpulse-comment.md --fail-on-new
+        code=$?
+        set -e
+        if [[ $code -ne 0 && $code -ne 5 ]]; then
+          echo "::error::TestPulse report failed with exit ${code} for suite '${{ inputs.suite }}'."
+          exit "$code"
+        fi
+        cat testpulse-comment.md >> "$GITHUB_STEP_SUMMARY"

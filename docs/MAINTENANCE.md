@@ -31,18 +31,21 @@ The high-risk pins are:
 - `uv`, Python, Node, pnpm, Playwright, Cucumber, axe, and Allure;
 - PostgreSQL, Redis, Mailpit, Node builder, and Cal.diy image digests;
 - k6 archive versions and hashes;
-- the TestPulse action commit and its installation behavior;
+- the local TestPulse adapter, exact TestPulse package commit and installation behavior;
 - Python `tzdata`, which changes future transition expectations by design.
 
 The CI `uv` pin is `0.12.1`. It replaced `0.8.17` after hosted-runner `pipx`
 began requiring `uv >= 0.9.17`; a real manual run exposed that incompatibility.
 Do not lower it without reproducing all five TestPulse ingestion calls.
 
-The TestPulse call is non-blocking for product confidence, but an ingestion
-error must remain visible as an annotation and workflow-summary entry. Repin
-TestPulse only after a manual run proves API, merged E2E, BDD, and merged
-performance ingestion. The database secret is checked only for presence and
-must never be echoed, copied into an artifact, or used by pull-request jobs.
+The repository-owned TestPulse adapter installs `testpulse-core[postgres]` from
+exact commit `2696d715e7b18f2ef029e291f37371d6b4bb01fb`. This closes a transitive
+pinning hole in the upstream action at that commit, which installs its package
+from mutable `main`. The call remains non-blocking for product confidence, but
+an ingestion error must remain visible as an annotation and workflow-summary
+entry. Repin TestPulse only after a manual run proves API, merged E2E, BDD, and
+merged performance ingestion. The database secret is checked only for presence
+and must never be echoed, copied into an artifact, or used by pull-request jobs.
 
 ## Visual baselines
 
@@ -53,8 +56,11 @@ The event metadata, responsive shell, controls, borders, and branding remain
 visible to comparison.
 
 Run the guarded update on the platform whose baseline is changing, inspect both
-images, then rerun ordinary comparison mode at least once. Never copy a baseline
-between platforms and call the result verified.
+images, then rerun ordinary comparison mode at least once. A hosted-Linux actual
+may be imported only after inspecting its expected/actual/diff artifact with
+`make import-linux-snapshots SOURCE_DIR=... CONFIRM=caldiy-qa-strategy`; the next
+ordinary Linux CI comparison must pass. Never copy a baseline between platforms
+and call the result verified.
 
 ## Recovery rules
 

@@ -140,13 +140,12 @@ jobs:
       - name: Ingest first API run into TestPulse
         if: always() && github.ref == 'refs/heads/main' && steps.testpulse_secret.outputs.present == 'true' && steps.api_runs.outputs.run_1_report == 'true'
         continue-on-error: true
-        uses: Mohanad49/testpulse@2696d715e7b18f2ef029e291f37371d6b4bb01fb
+        uses: ./.github/actions/testpulse-ingest
         with:
           path: test-results/api-runs/run-1/junit.xml
           format: junit
           suite: caldiy-api-v2
           database-url: ${{ secrets.TESTPULSE_DATABASE_URL }}
-          comment: "false"
       - name: Enforce API suite outcomes
         if: always() && github.event_name != 'pull_request'
         shell: bash
@@ -208,13 +207,12 @@ jobs:
       - name: Ingest repeated same-commit API run into TestPulse
         if: always() && github.ref == 'refs/heads/main' && steps.api_repeat_run.outcome != 'skipped' && steps.testpulse_secret.outputs.present == 'true'
         continue-on-error: true
-        uses: Mohanad49/testpulse@2696d715e7b18f2ef029e291f37371d6b4bb01fb
+        uses: ./.github/actions/testpulse-ingest
         with:
           path: test-results/api/junit.xml
           format: junit
           suite: caldiy-api-v2
           database-url: ${{ secrets.TESTPULSE_DATABASE_URL }}
-          comment: "false"
       - name: Enforce repeated API outcome
         if: always()
         run: test "${{ steps.api_repeat_run.outcome }}" = "success"
@@ -352,13 +350,12 @@ jobs:
       - name: Ingest only the merged Playwright report into TestPulse
         if: always() && github.ref == 'refs/heads/main' && steps.merge.outcome == 'success' && steps.testpulse_secret.outputs.present == 'true'
         continue-on-error: true
-        uses: Mohanad49/testpulse@2696d715e7b18f2ef029e291f37371d6b4bb01fb
+        uses: ./.github/actions/testpulse-ingest
         with:
           path: test-results/e2e/playwright.json
           format: playwright
           suite: caldiy-e2e
           database-url: ${{ secrets.TESTPULSE_DATABASE_URL }}
-          comment: "false"
       - name: Enforce merge outcome
         if: always()
         run: test "${{ steps.merge.outcome }}" = "success"
@@ -448,13 +445,12 @@ jobs:
       - name: Ingest BDD JUnit into TestPulse
         if: always() && github.ref == 'refs/heads/main' && steps.testpulse_secret.outputs.present == 'true'
         continue-on-error: true
-        uses: Mohanad49/testpulse@2696d715e7b18f2ef029e291f37371d6b4bb01fb
+        uses: ./.github/actions/testpulse-ingest
         with:
           path: test-results/bdd/junit.xml
           format: junit
           suite: caldiy-bdd
           database-url: ${{ secrets.TESTPULSE_DATABASE_URL }}
-          comment: "false"
       - name: Enforce browser quality outcomes
         if: always()
         shell: bash
@@ -583,13 +579,12 @@ jobs:
       - name: Ingest performance gate outcomes into TestPulse
         if: always() && github.ref == 'refs/heads/main' && steps.merge_performance.outcome == 'success' && steps.testpulse_secret.outputs.present == 'true'
         continue-on-error: true
-        uses: Mohanad49/testpulse@2696d715e7b18f2ef029e291f37371d6b4bb01fb
+        uses: ./.github/actions/testpulse-ingest
         with:
           path: test-results/performance/junit.xml
           format: junit
           suite: caldiy-performance-gates
           database-url: ${{ secrets.TESTPULSE_DATABASE_URL }}
-          comment: "false"
       - name: Enforce performance outcomes after evidence and ingestion
         if: always()
         shell: bash
