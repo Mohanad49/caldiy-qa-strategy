@@ -20,6 +20,7 @@ required_files=(
   docs/PHASE-5-CI.md
   docs/MAINTENANCE.md
   docs/PUBLIC-RELEASE.md
+  docs/BRIEF-TRACEABILITY.md
   docs/defects/README.md
   docs/defects/DEFECT-001-duplicate-openapi-operation-ids.md
   docs/defects/DEFECT-002-default-booking-field-type.md
@@ -34,9 +35,11 @@ required_files=(
   pnpm-workspace.yaml
   playwright.config.ts
   cucumber.mjs
+  cucumber.validate.mjs
   scripts/validate_phase3.py
   scripts/validate_phase4.py
   scripts/validate_phase5.py
+  scripts/validate_markdown_links.py
   scripts/current_defect_audit.py
   scripts/validate_phase6.py
   playwright.merge.config.ts
@@ -126,6 +129,10 @@ MYPYPATH="${repo_root}/src" UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --froze
   scripts/current_defect_audit.py || fail 'Phase 6 Python type checks failed'
 UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen python scripts/validate_phase6.py || \
   fail 'Phase 6 static contracts failed'
+UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen ruff check \
+  scripts/validate_markdown_links.py || fail 'Markdown-link validator lint failed'
+UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen python scripts/validate_markdown_links.py || \
+  fail 'Markdown links failed'
 
 fixture_path="${repo_root}/perf/fixture.example.json"
 for k6_script in availability.js booking-throughput.js contention.js; do
@@ -154,7 +161,7 @@ pnpm run typecheck >/dev/null || fail 'TypeScript checks failed'
 pnpm exec playwright test --list >/dev/null || fail 'Playwright test discovery failed'
 mkdir -p test-results/bdd
 node --import tsx ./node_modules/@cucumber/cucumber/bin/cucumber.js \
-  --config cucumber.mjs --dry-run --format progress >/dev/null || fail 'Cucumber dry run failed'
+  --config cucumber.validate.mjs --dry-run >/dev/null || fail 'Cucumber dry run failed'
 
 required_strategy_headings=(
   '## Product and version boundary'
