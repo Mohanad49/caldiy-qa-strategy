@@ -213,9 +213,11 @@ def main() -> None:
         "no ci badge",
         "30778631910",
         "30777108027",
+        "30932432000",
         "13 tests with zero failures",
         "15 tests with zero failures",
-        "testpulse ingestion was visibly skipped",
+        "confirmed `testpulse_database_url` by boolean presence only",
+        "four declared suite names",
         "never targets hosted cal.com",
         "enable_allure_pages=true",
     ):

@@ -406,3 +406,139 @@ context, consequences, and evidence record the Phase 4 implementation.
 - **Evidence:** Four passing availability/throughput JUnit cases, six passing
   contention JUnit cases, gzip raw JSON, summaries, and commit-bound environment
   metadata.
+
+## Phase 5 decisions
+
+Mohanad approved the eight **Decision** statements on 2026-08-04. The
+surrounding context, consequences, and evidence record the Phase 5
+implementation.
+
+### D-024 — Cache the build without distributing the API image
+
+- **Status:** Accepted
+- **Context:** API v2 is expensive to build on ephemeral runners and its package
+  is marked `UNLICENSED`.
+- **Decision:** I rebuild API v2 from the exact controlled source on each runner
+  and share only authenticated Buildx cache layers; I will not publish or retain
+  the resulting API image as a registry package or workflow artifact.
+- **Rejected alternative:** Push the image to GHCR, upload an image tarball, or
+  silently rebuild without the declared cache when cache credentials are absent.
+- **Consequences:** CI remains license-conscious and provenance-bound, but the
+  first cache export and each runner-local image import are expensive.
+- **Evidence:** The pinned composite action, fail-closed cache-runtime check,
+  `CACHED` consumer logs, image labels, and runs `30772862158` and `30778631910`.
+
+### D-025 — Merge Playwright evidence once
+
+- **Status:** Accepted
+- **Context:** Four shards can emit the same natural test identity if each shard
+  independently creates final JSON, JUnit, Allure, and TestPulse reports.
+- **Decision:** I make each Playwright shard emit only a blob, require all four
+  blobs, and merge once before generating final reports or ingesting history.
+- **Rejected alternative:** Ingest each shard separately or accept an incomplete
+  shard set as a complete E2E run.
+- **Consequences:** E2E history has one natural key per test and the merge fails
+  if any shard artifact is missing.
+- **Evidence:** Four successful shard jobs, the 15-test merged report, and the
+  successful merge and Allure jobs in run `30778631910`.
+
+### D-026 — Remove functional contention from parallel lifecycle tests
+
+- **Status:** Accepted
+- **Context:** Separate event types owned by one organizer still contend for the
+  organizer's calendar when parallel tests choose the same slot.
+- **Decision:** I isolate each shard with its own SUT and give parallel Chromium
+  and Firefox lifecycle journeys non-overlapping schedule windows; I do not
+  retry a booking collision and call it test stability.
+- **Rejected alternative:** Add retries around `409` booking conflicts or treat
+  separate event-type records as sufficient scheduling isolation.
+- **Consequences:** Lifecycle failures represent the journey under test instead
+  of accidental cross-test resource contention.
+- **Evidence:** The collision in run `30772862158` and all four passing shards in
+  run `30778631910` after the schedule-window change.
+
+### D-027 — Keep TestPulse downstream of product confidence
+
+- **Status:** Accepted
+- **Context:** Longitudinal reporting is useful but an analytics outage must not
+  change the product-test result, and pull-request runs should not pollute
+  history.
+- **Decision:** I ingest only merged `main` and nightly reports into four stable
+  TestPulse suites; ingestion is non-blocking but visibly annotated, and a
+  missing secret is reported without printing its value.
+- **Rejected alternative:** Ingest pull-request shards, hide ingestion failures,
+  or make TestPulse availability a product quality gate.
+- **Consequences:** Product confidence remains grounded in source reports while
+  reporting failures stay visible. The secret is verified by presence only and
+  its value is never printed or copied.
+- **Evidence:** Pinned TestPulse action calls and successful presence and
+  ingestion steps for all four stable suites in manual run `30932432000`.
+
+### D-028 — Do not manufacture a green quality workflow
+
+- **Status:** Accepted
+- **Context:** Cal.diy `v6.2.0` has documented serious/critical accessibility
+  findings, and hosted Linux text rendering does not match the committed macOS
+  visual baselines.
+- **Decision:** I keep the accessibility and visual gates red, retain their
+  evidence, and omit the CI badge until the real workflow succeeds; I will not
+  suppress findings or promote Linux snapshots without explicit confirmation.
+- **Rejected alternative:** Waive axe violations, loosen screenshot thresholds,
+  silently replace baselines, or badge a knowingly failing workflow.
+- **Consequences:** The repository has no green quality badge yet, but its CI
+  conclusion matches the actual controlled-snapshot evidence.
+- **Evidence:** BDD 3/3, accessibility 1/3, visuals 0/2, and retained diffs,
+  traces, screenshots, and videos in run `30778631910`.
+
+### D-029 — Keep private report publication disabled
+
+- **Status:** Accepted
+- **Context:** Allure output is useful as retained evidence, while GitHub Pages
+  publication is inappropriate before the private project reaches public
+  release.
+- **Decision:** I retain failure evidence for 14 days and merged reports for 30
+  days, generate one Allure artifact, and require an absent-by-default
+  `ENABLE_ALLURE_PAGES=true` variable before Pages can deploy.
+- **Rejected alternative:** Publish Pages automatically from the private
+  repository or retain every large trace indefinitely.
+- **Consequences:** Reports are reviewable as workflow artifacts without making
+  the project public or creating an unbounded storage policy.
+- **Evidence:** The retained artifacts in run `30778631910`, the manual-only
+  Pages workflow, and the absent enablement variable.
+
+### D-030 — Separate controlled gates from advisory comparisons
+
+- **Status:** Accepted
+- **Context:** The SUT is the historical `v6.2.0` snapshot; current public
+  Cal.diy `main` and the Phase 4 workstation threshold answer different
+  questions.
+- **Decision:** I keep the controlled snapshot authoritative, treat the current
+  public contract comparison as informational, and label the 2,300 ms k6 gate
+  as a local Docker threshold rather than a production SLO.
+- **Rejected alternative:** Imply coverage of current hosted Cal.com, fail the
+  controlled suite because public `main` changed, or present local latency as a
+  production objective.
+- **Consequences:** CI can surface drift and runner performance without changing
+  the version boundary or overstating what the evidence proves.
+- **Evidence:** The controlled commit pin, run `30777108027` current-upstream
+  advisory artifact, and retained k6 environment metadata.
+
+### D-031 — Wait for fixture visibility without retrying tests
+
+- **Status:** Accepted
+- **Context:** Manual run `30777108027` created API fixtures successfully, but
+  the browser-quality SUT returned HTTP 404 for every freshly created booking
+  route. Waiting for a locator on the already-rendered 404 page hid the real
+  readiness failure.
+- **Decision:** I give the shared booking-page object a bounded 15-second,
+  404-only route-readiness check before any BDD, axe, or visual assertion. I do
+  not rerun scenarios or product assertions; any non-404 error fails
+  immediately, and a timeout reports the observed HTTP status sequence.
+- **Rejected alternative:** Add workflow or test retries, increase locator
+  timeouts on a 404 page, or classify invalid browser results as known product
+  findings.
+- **Consequences:** Fresh-fixture propagation is explicit and diagnosable while
+  genuine product failures remain single-attempt outcomes.
+- **Evidence:** The retained 404 trace and invalid browser reports from run
+  `30777108027`, commit `9088b0d6c23ac81c2641848e9b2436aa450f1337`,
+  and the restored BDD 3/3, axe 1/3, visual 0/2 pattern in run `30778631910`.

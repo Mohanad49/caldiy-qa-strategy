@@ -146,10 +146,22 @@ the scheduling defect; `30777108027` is the runtime proof of the corrected
 two-wave dependency. Neither red/cancelled run is described as a successful
 overall workflow conclusion.
 
-`TESTPULSE_DATABASE_URL` and `ENABLE_ALLURE_PAGES` are absent. Accordingly,
-TestPulse ingestion was visibly skipped and Pages remains disabled. No
-ingestion result, Pages report, green quality conclusion, or CI badge is
-claimed. No CI badge is added. The repository remains private.
+Manual verification run
+[`30932432000`](https://github.com/Mohanad49/caldiy-qa-strategy/actions/runs/30932432000)
+confirmed `TESTPULSE_DATABASE_URL` by boolean presence only. The pinned action
+completed successfully for the core API report, repeated same-commit API report,
+once-merged E2E report, BDD report, and merged performance-gate report. Those
+inputs use the four declared suite names; the two API ingestions intentionally
+share `caldiy-api-v2` to create same-commit history rather than a fifth suite.
+
+The same run remains red overall because the browser-quality job enforces the
+known axe and hosted-Linux visual failures after evidence upload and BDD
+ingestion. TestPulse is downstream of that product result. No database URL was
+printed or copied, no CI badge is added, and no green workflow conclusion is
+claimed.
+
+`ENABLE_ALLURE_PAGES` remains absent, so Pages publication is disabled while
+the repository is private. The repository remains private.
 
 ## Known limitations
 

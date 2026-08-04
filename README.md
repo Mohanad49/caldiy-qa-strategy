@@ -23,7 +23,7 @@ in its [announcement](https://cal.com/blog/cal-com-goes-closed-source-why).
 | 2 | API v2 automation with pytest and httpx | Implemented |
 | 3 | Playwright E2E, selective Cucumber BDD, accessibility and visual checks | Implemented |
 | 4 | k6 performance and contention gates | Implemented |
-| 5 | CI, Allure reporting and TestPulse ingestion | Planned |
+| 5 | CI, Allure reporting and TestPulse ingestion | Implemented; four suites ingested |
 | 6 | Verified defect reports and eligible upstream reports | Planned |
 
 The Phase 2 local run passed 13 of 13 API tests in 17.58 seconds with 77%
@@ -47,9 +47,67 @@ persisted booking, with zero unexpected, persistence, or cleanup errors. These
 are local amd64 Docker results, not production SLOs or public-infrastructure
 load results.
 
+Phase 5 push-tier run
+[`30778631910`](https://github.com/Mohanad49/caldiy-qa-strategy/actions/runs/30778631910)
+passed repository validation, API smoke/contracts and 13 of 13 API tests, all
+four Playwright shards and the required merge with 15 of 15 E2E tests, all
+three BDD scenarios, and merged Allure generation. The browser-quality job is
+honestly red: one of three accessibility surfaces passed, and both hosted-Linux
+visual comparisons differ from the committed macOS baselines. No CI badge is
+shown. `TESTPULSE_DATABASE_URL` is absent, so ingestion was visibly skipped and
+no TestPulse history is claimed from that earlier run.
+
+Manual-tier run
+[`30777108027`](https://github.com/Mohanad49/caldiy-qa-strategy/actions/runs/30777108027)
+proved that the 13-test timezone matrix, repeated 13-test API run, and k6 jobs
+start only after the core API job passes. Hosted-runner availability measured
+320.39 ms p95 with 0/1,090 application errors, unique booking completed 50/50,
+and contention produced one success, 19 expected conflicts, and one persisted
+booking. Its browser-quality branch hit fresh-route 404s, so those browser
+results are not accepted; the bounded readiness fix is verified by the push run
+above. The workflow remains red and unbadged for the evidence-backed axe and
+visual findings.
+
+Manual verification run
+[`30932432000`](https://github.com/Mohanad49/caldiy-qa-strategy/actions/runs/30932432000)
+confirmed `TESTPULSE_DATABASE_URL` by presence only and completed successful
+ingestion steps for the core and repeated API reports, the once-merged E2E
+report, BDD, and the merged performance gates. These map to the four stable
+suites `caldiy-api-v2`, `caldiy-e2e`, `caldiy-bdd`, and
+`caldiy-performance-gates`. The run's overall conclusion is still failure
+because the unsuppressed axe and visual gates remain red; reporting did not
+override product confidence.
+
 [TestPulse](https://github.com/Mohanad49/testpulse) is already a separate,
-publicly available project. Only this repository's report ingestion into
-TestPulse remains planned.
+publicly available project. This private repository now ingests the four suites
+above on eligible `main` and manual/nightly runs. The database URL was neither
+printed nor copied during verification.
+
+## CI architecture
+
+```mermaid
+flowchart TD
+    V[Repository contracts] --> P[Exact-source API cache prewarm]
+    P --> A[API suite]
+    P --> S1[Playwright shard 1]
+    P --> S2[Playwright shard 2]
+    P --> S3[Playwright shard 3]
+    P --> S4[Playwright shard 4]
+    P --> B[BDD, axe and visuals]
+    A --> N[Nightly or manual timezone, repeat API and k6]
+    S1 --> M[Require four blobs and merge once]
+    S2 --> M
+    S3 --> M
+    S4 --> M
+    A --> R[Merged Allure artifact]
+    M --> R
+    B --> R
+    N --> R
+    A -. main or nightly; secret required .-> T[TestPulse]
+    M -. main or nightly; secret required .-> T
+    B -. main or nightly; secret required .-> T
+    N -. nightly; secret required .-> T
+```
 
 ## Stable commands
 
@@ -109,5 +167,6 @@ They must never be reused for a deployed environment or treated as secrets.
 - `docs/API-AUTOMATION.md` — client design, contract policy, coverage and local results
 - `docs/PHASE-3-EVIDENCE.md` — measured browser, timezone, accessibility and visual results
 - `docs/PHASE-4-EVIDENCE.md` — measured local performance and contention results
+- `docs/PHASE-5-CI.md` — tiered CI boundaries, reporting, retention and run evidence
 - `docs/findings/` — snapshot-specific compatibility findings requiring current-upstream verification
 - `DECISIONS.md` — decisions written or approved by Mohanad after each phase
