@@ -24,7 +24,7 @@ in its [announcement](https://cal.com/blog/cal-com-goes-closed-source-why).
 | 3 | Playwright E2E, selective Cucumber BDD, accessibility and visual checks | Implemented |
 | 4 | k6 performance and contention gates | Implemented |
 | 5 | CI, Allure reporting and TestPulse ingestion | Implemented; four suites ingested |
-| 6 | Verified defect reports and eligible upstream reports | Planned |
+| 6 | Verified defect reports and eligible upstream reports | Implemented; decision approval pending |
 
 The Phase 2 local run passed 13 of 13 API tests in 17.58 seconds with 77%
 branch-aware package coverage. It produced 14 evidence-backed contract
@@ -82,6 +82,17 @@ override product confidence.
 publicly available project. This private repository now ingests the four suites
 above on eligible `main` and manual/nightly runs. The database URL was neither
 printed nor copied during verification.
+
+Phase 6 audited current public Cal.diy `main` at commit
+`8418db70c71e5364e6baf26275aafa10e6bc9bd7`. Two contract defects met the
+current-evidence and duplicate-search bar: duplicate calendar operation IDs
+([calcom/cal.diy#29903](https://github.com/calcom/cal.diy/issues/29903)) and
+default booking-field boolean values documented as objects
+([calcom/cal.diy#29904](https://github.com/calcom/cal.diy/issues/29904)). Both
+are rated Medium and filed publicly. Of the 18 historical local findings, one
+maps to a current filed defect, three faulty contract conditions are no longer
+present, and 14 remain unfiled because current runtime or UI behavior was not
+reproduced. Hosted Cal.com was not tested.
 
 ## CI architecture
 
@@ -148,6 +159,7 @@ Phase 4 local performance commands:
 make perf-baseline
 make test-perf
 make test-contention
+make defects-audit
 ```
 
 The API v2 image is built locally from the exact controlled commit and is not
@@ -168,5 +180,6 @@ They must never be reused for a deployed environment or treated as secrets.
 - `docs/PHASE-3-EVIDENCE.md` — measured browser, timezone, accessibility and visual results
 - `docs/PHASE-4-EVIDENCE.md` — measured local performance and contention results
 - `docs/PHASE-5-CI.md` — tiered CI boundaries, reporting, retention and run evidence
+- `docs/defects/` — current-main reports, upstream links and historical-finding triage
 - `docs/findings/` — snapshot-specific compatibility findings requiring current-upstream verification
 - `DECISIONS.md` — decisions written or approved by Mohanad after each phase

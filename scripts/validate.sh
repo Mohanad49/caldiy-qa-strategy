@@ -18,6 +18,9 @@ required_files=(
   docs/PHASE-3-EVIDENCE.md
   docs/PHASE-4-EVIDENCE.md
   docs/PHASE-5-CI.md
+  docs/defects/README.md
+  docs/defects/DEFECT-001-duplicate-openapi-operation-ids.md
+  docs/defects/DEFECT-002-default-booking-field-type.md
   infra/compose.yml
   infra/api-v2.Dockerfile
   pyproject.toml
@@ -32,6 +35,8 @@ required_files=(
   scripts/validate_phase3.py
   scripts/validate_phase4.py
   scripts/validate_phase5.py
+  scripts/current_defect_audit.py
+  scripts/validate_phase6.py
   playwright.merge.config.ts
   perf/thresholds.json
   perf/fixture.example.json
@@ -113,6 +118,12 @@ MYPYPATH="${repo_root}/src" UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --froze
   fail 'Phase 5 Python type checks failed'
 UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen python scripts/validate_phase5.py || \
   fail 'Phase 5 static contracts failed'
+UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen ruff check \
+  scripts/current_defect_audit.py scripts/validate_phase6.py || fail 'Phase 6 Python lint failed'
+MYPYPATH="${repo_root}/src" UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen mypy \
+  scripts/current_defect_audit.py || fail 'Phase 6 Python type checks failed'
+UV_CACHE_DIR="${repo_root}/.cache/uv" uv run --frozen python scripts/validate_phase6.py || \
+  fail 'Phase 6 static contracts failed'
 
 fixture_path="${repo_root}/perf/fixture.example.json"
 for k6_script in availability.js booking-throughput.js contention.js; do

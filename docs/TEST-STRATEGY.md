@@ -124,26 +124,24 @@ compatibility result, not filed as a current product defect.
   booking history when a clean database is required.
 - Destructive reset is limited to the named Compose volumes and requires the
   literal confirmation `caldiy-qa-strategy`.
-- Notification assertions will query Mailpit and correlate a message to a unique
+- Notification assertions query Mailpit and correlate a message to a unique
   booking identifier instead of assuming inbox order.
 
-## Delivered and planned tooling
+## Delivered tooling
 
 Phase 2 delivers Python 3.12, pytest, httpx, xdist, a locked `uv` environment,
 strict typing and linting, pinned timezone data, an unchanged OpenAPI snapshot,
 JSON Schema validation, JUnit, coverage, and Allure-compatible raw results.
 `docs/API-AUTOMATION.md` records its verified scope and local evidence.
 
-The following remains planned:
-
-- Playwright and TypeScript for browser automation, fixtures, traces, and visual
-  snapshots;
-- `@cucumber/cucumber` for the three business-readable lifecycle journeys only;
-- axe-core for accessibility checks on the public booking surface;
-- k6 for availability load and capacity-one contention;
-- Allure for inspectable run evidence;
-- the existing public TestPulse service for longitudinal flake and duration
-  history after this repository produces real reports.
+Phase 3 delivers Playwright and TypeScript browser automation, exactly three
+`@cucumber/cucumber` lifecycle journeys, axe-core accessibility checks, guarded
+Chromium visual snapshots, and the pinned Python timezone oracle. Phase 4
+delivers k6 availability, booking-throughput, and contention gates. Phase 5
+delivers tiered GitHub Actions, merged Allure artifacts, and non-blocking
+TestPulse ingestion for four stable suites. Phase 6 delivers current-main defect
+auditing, professional defect reports, historical-finding triage, and eligible
+public upstream issues.
 
 API v2 remains absent from the default Phase 1 Compose stack. Its separate
 profile was accepted after an exact-source local build and a ten-minute health
@@ -180,10 +178,9 @@ and memory qualification. The image is non-distributable and stays local.
   upstream defects.
 - Mohanad approves the Phase 2 decision-log entries before the closing commit.
 
-Later phases retain the same rule: passing evidence, independent rerunability,
-truthful status, and an approved decision-log update are required before their
-status changes from planned. Test counts come from run artifacts, never
-estimates.
+Every phase retains the same rule: passing evidence, independent rerunability,
+truthful status, and an approved decision-log update are required before its
+checkpoint is closed. Test counts come from run artifacts, never estimates.
 
 ## Reporting and defect policy
 
@@ -196,11 +193,11 @@ is reported with the cases and version tested. Upstream issues are created only
 for findings that are current, reproducible, searched for duplicates, and
 appropriate for the public Cal.diy repository.
 
-Flaky tests will not be silently retried into green. The later CI policy will
-record the first failure, retain traces, and use a time-limited quarantine only
-after evidence supports a test-flake classification. The API suite now emits
-genuine JUnit and Allure-compatible results. TestPulse integration is still
-deferred to the Phase 5 tiered-CI checkpoint; local Phase 2 runs are not
+Flaky tests are not silently retried into green. CI records the first failure,
+retains traces, and permits a time-limited quarantine only after evidence
+supports a test-flake classification. The suites emit genuine JUnit and
+Allure-compatible results. Phase 5 verified TestPulse ingestion from `main` and
+manual history; the earlier local-only Phase 2 run is not retroactively
 ingested.
 
 ## Explicit exclusions

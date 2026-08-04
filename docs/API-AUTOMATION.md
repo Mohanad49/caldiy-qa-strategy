@@ -61,7 +61,8 @@ The 13 independent pytest cases cover:
 - booking create, get, list, reschedule, cancel, past time, outside availability, missing fields, invalid attendee timezone, and not found;
 - two requests for the same capacity-one slot, requiring the second request to be rejected.
 
-The contention case is a functional two-request check, not the synchronized 20-request k6 gate planned for Phase 4.
+The contention case is a functional two-request check. Phase 4 separately
+delivers the synchronized 20-request k6 gate.
 
 ## Local evidence
 
