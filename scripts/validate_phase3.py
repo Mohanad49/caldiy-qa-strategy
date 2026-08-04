@@ -148,4 +148,14 @@ if (
 ):
     fail("snapshot update confirmation guard is missing")
 
+linux_import = read("scripts/import-linux-snapshots.sh")
+for import_contract in (
+    'expected="caldiy-qa-strategy"',
+    '"${CONFIRM:-}" != "${expected}"',
+    'public-booking-${viewport}-actual.png',
+    "scripts/validate_phase3.py",
+):
+    if import_contract not in linux_import:
+        fail(f"Linux snapshot import contract is missing: {import_contract}")
+
 print("Phase 3 static contracts passed.")

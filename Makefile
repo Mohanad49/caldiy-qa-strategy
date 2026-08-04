@@ -1,6 +1,6 @@
 SHELL := /usr/bin/env bash
 
-.PHONY: help api-build sut-bootstrap sut-smoke sut-api-bootstrap sut-api-smoke sut-down sut-reset test-bootstrap test-api test-e2e test-timezones test-bdd test-a11y update-snapshots perf-baseline test-perf test-contention contracts-verify defects-audit validate
+.PHONY: help api-build sut-bootstrap sut-smoke sut-api-bootstrap sut-api-smoke sut-down sut-reset test-bootstrap test-api test-e2e test-timezones test-bdd test-a11y update-snapshots import-linux-snapshots perf-baseline test-perf test-contention contracts-verify defects-audit validate
 
 help:
 	@printf '%s\n' \
@@ -18,6 +18,7 @@ help:
 	  'make test-bdd                              Run exactly three Cucumber lifecycle journeys' \
 	  'make test-a11y                             Run serious/critical axe checks' \
 	  'make update-snapshots CONFIRM=caldiy-qa-strategy  Explicitly update Chromium snapshots' \
+	  'make import-linux-snapshots SOURCE_DIR=... CONFIRM=caldiy-qa-strategy  Import inspected CI actuals' \
 	  'make perf-baseline                         Measure five local availability runs' \
 	  'make test-perf                             Run availability and booking throughput gates' \
 	  'make test-contention                       Verify one winner under 20-way slot contention' \
@@ -66,6 +67,9 @@ test-a11y:
 
 update-snapshots:
 	@CONFIRM='$(CONFIRM)' ./scripts/update-snapshots.sh
+
+import-linux-snapshots:
+	@SOURCE_DIR='$(SOURCE_DIR)' CONFIRM='$(CONFIRM)' ./scripts/import-linux-snapshots.sh
 
 perf-baseline:
 	@./scripts/perf-baseline.sh

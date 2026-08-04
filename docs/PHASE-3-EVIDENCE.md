@@ -5,22 +5,25 @@
 These results apply to Cal.diy `v6.2.0`, commit
 `1c193cca8682b33b9866c792186033f7ef886682`, running in this repository's
 local Docker environment. They are not evidence about current hosted Cal.com
-or current Cal.diy. They were produced locally on 2026-07-31 and have not been
-ingested into TestPulse or reproduced in CI.
+or current Cal.diy. The original checkpoint was produced on 2026-07-31; the
+complete local layer was rerun during the 2026-08-05 public-release audit. CI
+and TestPulse evidence is recorded separately in `PHASE-5-CI.md`.
 
 ## Measured local results
 
 | Command | Result | Measured duration | Evidence boundary |
 |---|---:|---:|---|
-| `make test-e2e` | 12/12 passed | 75.52 s | Chromium lifecycle plus Firefox lifecycle smoke |
-| `make test-bdd` | 3/3 scenarios, 18/18 steps passed | 25.93 s | Booking, rescheduling and cancellation only |
-| `make test-timezones` | 13/13 passed | 61.84 s | Chromium with an independent pinned `zoneinfo` oracle |
-| `make test-a11y` | 1/3 passed, 2/3 failed | 26.60 s | Intentional red gate for serious or critical axe findings |
-| `pnpm run test:visual` | 2/2 passed | 12.88 s | Chromium snapshot comparison after a guarded baseline update |
+| `make test-e2e` | 12/12 passed | 103.99 s | Chromium lifecycle plus Firefox lifecycle smoke |
+| `make test-bdd` | 3/3 scenarios, 18/18 steps passed | 33.33 s | Booking, rescheduling and cancellation only |
+| `make test-timezones` | 14/14 passed | 89.92 s | Chromium with an independent pinned `zoneinfo` oracle |
+| `make test-a11y` | 1/3 passed, 2/3 failed | 28.75 s | Intentional red gate for serious or critical axe findings |
+| `pnpm run test:visual` | 2/2 passed | 14.05 s | Darwin Chromium comparison after a guarded baseline update |
 
-Durations come from the locally generated JUnit reports. The ignored reports
-and Allure input are retained only as local evidence until Phase 5 defines CI
-artifact retention and TestPulse ingestion.
+Durations come from the final local JUnit reports, except Cucumber's wall time,
+which comes from its final command summary. Reports and Allure input are ignored
+locally; CI retains the bounded artifacts described in Phase 5. `make validate`
+uses a separate dry-run configuration and does not overwrite the real Cucumber
+JSON or JUnit evidence.
 
 ## Browser lifecycle design
 
@@ -54,7 +57,9 @@ timezone matrices, accessibility and visual assertions remain outside Gherkin.
 The matrix exercises UTC, New York, London, Cairo, Kolkata, Kathmandu, Eucla,
 Sydney and Phoenix. It covers fractional offsets, DST gaps and folds, opposing
 hemispheres, non-DST/DST pairings, rescheduling, boundary-spanning durations
-and notification timestamps.
+and notification timestamps. A focused New York-host/Kathmandu-booker journey
+also proves local-date rollover, retains the initial and replacement UTC
+instants, and checks London-organizer and Kathmandu-attendee email timestamps.
 
 Python `zoneinfo` is forced to the exactly pinned `tzdata==2026.3` package and
 generates the expected transitions and UTC instants. Browser contexts control
@@ -93,8 +98,10 @@ in `docs/defects/README.md`.
 
 ## Visual evidence
 
-Committed Chromium baselines are exactly 1440×900 and 390×844. Only the month
-label, calendar days, time choices and selected-date heading are masked because
-they vary with fixture dates. An update is refused unless the caller supplies
-`CONFIRM=caldiy-qa-strategy`; the ordinary visual command compared cleanly
-against the resulting baselines.
+Committed Chromium baselines are exactly 1440×900 and 390×844 and are stored
+separately for Darwin and Linux because browser text rasterization is
+platform-dependent. The calendar and timeslot grid sections are masked as
+fixed units because their child count and geometry vary with the server's real
+date; event metadata, controls, branding and responsive shell remain compared.
+An update is refused unless the caller supplies `CONFIRM=caldiy-qa-strategy`.
+The guarded Darwin update was inspected and an ordinary local comparison passed.
