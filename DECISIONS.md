@@ -542,3 +542,78 @@ implementation.
 - **Evidence:** The retained 404 trace and invalid browser reports from run
   `30777108027`, commit `9088b0d6c23ac81c2641848e9b2436aa450f1337`,
   and the restored BDD 3/3, axe 1/3, visual 0/2 pattern in run `30778631910`.
+
+## Phase 6 decisions
+
+Mohanad approved the four **Decision** statements on 2026-08-05. The
+surrounding context, consequences, and evidence record the Phase 6
+implementation.
+
+### D-032 — Use each automation language at its strongest boundary
+
+- **Status:** Accepted
+- **Context:** API contract work needs concise data builders, schema tooling,
+  and an independent timezone oracle; browser work needs first-class Playwright
+  fixtures, traces, and page objects.
+- **Decision:** I use Python for API contracts, factories, cleanup and timezone
+  expectations, and TypeScript for Playwright and Cucumber browser journeys. I
+  accept two locked toolchains because the boundary is explicit and shared test
+  data crosses it through the `caldiy-fixtures --json` interface.
+- **Rejected alternative:** Force both layers into one language solely to reduce
+  the number of toolchains, or duplicate factory logic in TypeScript.
+- **Consequences:** Each layer uses its strongest ecosystem, but repository
+  validation must keep both lockfiles, runtimes, lint rules, and types healthy.
+- **Evidence:** The 13-test Python API suite, pinned `zoneinfo` oracle, 15-test
+  merged Playwright report, three Cucumber journeys, and shared fixture CLI.
+
+### D-033 — Require current evidence before upstream filing
+
+- **Status:** Accepted
+- **Context:** The controlled SUT is historical, while a public issue implies a
+  defect in current Cal.diy. Several old response-schema conditions still exist
+  in current source without current runtime-response evidence.
+- **Decision:** I file only findings reproduced against an exact current public
+  commit after searching issues and pull requests; a matching schema shape
+  without its current runtime value is not enough to promote a historical
+  response mismatch.
+- **Rejected alternative:** File every `v6.2.0` finding that looks unchanged in
+  current OpenAPI, or imply that hosted Cal.com shares public Cal.diy behavior.
+- **Consequences:** Fourteen historical runtime/UI findings remain unfiled, even
+  though nine retain a suspicious schema condition. The register explains that
+  evidence gap instead of turning it into a defect claim.
+- **Evidence:** Current-main audit at
+  `8418db70c71e5364e6baf26275aafa10e6bc9bd7`, the 18-finding disposition table,
+  and duplicate searches recorded on 2026-08-04.
+
+### D-034 — Rate the filed contract defects Medium
+
+- **Status:** Accepted
+- **Context:** Both current defects can break standards-aware validation or
+  generated clients, but neither report proves an outage of the public booking
+  journey or data integrity.
+- **Decision:** I classify duplicate operation IDs and boolean-as-object output
+  schemas as Medium because their demonstrated impact is API tooling and strict
+  client compatibility, not an evidenced booking outage.
+- **Rejected alternative:** Call them High based on hypothetical SDK impact or
+  Low merely because the HTTP handlers may still return data.
+- **Consequences:** The reports state a defensible impact boundary and can be
+  revised if maintainers provide production-frequency or client-breakage data.
+- **Evidence:** Validator failures, source-to-contract comparisons, and the
+  severity rationale in DEFECT-001 and DEFECT-002.
+
+### D-035 — Keep the moving audit separate from pinned defect evidence
+
+- **Status:** Accepted
+- **Context:** Public Cal.diy `main` can change after a report is filed, while a
+  defect report must remain reproducible against the commit it names.
+- **Decision:** I keep `make defects-audit` as a moving, informational check of
+  public `main`, but pin each report and upstream issue to the exact audited
+  commit and record the generated OpenAPI hash with local evidence.
+- **Rejected alternative:** Check in a moving `main` OpenAPI snapshot as if it
+  were the controlled SUT, or let a later fix erase the original reproduction
+  context.
+- **Consequences:** Nightly/manual CI can show when an observation disappears
+  without rewriting the report's evidence or changing the `v6.2.0` test target.
+- **Evidence:** Current audit OpenAPI SHA-256
+  `16de9d3eb7b37a4e40caeead4af521cb6b32356b3d556311e5afc3a33c8b2f47`,
+  retained advisory paths, and issue links #29903 and #29904.
