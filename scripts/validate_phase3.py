@@ -71,9 +71,21 @@ for finding_id in ("CALDIY-LOCAL-002", "CALDIY-LOCAL-003", "CALDIY-LOCAL-004"):
         fail(f"accessibility evidence mapping is missing {finding_id}")
 
 expected_snapshots = {
-    "__screenshots__/tests/visual/booking.visual.spec.ts/public-booking-1440x900.png": (1440, 900),
-    "__screenshots__/tests/visual/booking.visual.spec.ts/public-booking-390x844.png": (390, 844),
+    f"__screenshots__/{platform}/tests/visual/booking.visual.spec.ts/public-booking-1440x900.png": (
+        1440,
+        900,
+    )
+    for platform in ("darwin", "linux")
 }
+expected_snapshots.update(
+    {
+        f"__screenshots__/{platform}/tests/visual/booking.visual.spec.ts/public-booking-390x844.png": (
+            390,
+            844,
+        )
+        for platform in ("darwin", "linux")
+    }
+)
 snapshot_root = REPO_ROOT / "__screenshots__"
 actual_snapshots = {
     path.relative_to(REPO_ROOT).as_posix() for path in snapshot_root.glob("**/*.png")
@@ -86,14 +98,20 @@ for path, dimensions in expected_snapshots.items():
 
 visual_source = read("tests/visual/booking.visual.spec.ts")
 expected_masks = (
-    'getByTestId("selected-month-label")',
-    'getByTestId("day")',
-    'getByTestId("time")',
-    'getByTestId("booker-container").locator("header > span")',
+    ':scope > [class*="[grid-area:main]"]',
+    ':scope > [class*="[grid-area:timeslots]"]',
 )
 for mask in expected_masks:
     if mask not in visual_source:
         fail(f"expected dynamic visual mask is missing: {mask}")
+visual_mask_body = visual_source.split("function dynamicCalendarRegions", maxsplit=1)[1]
+for unstable_child_mask in ('getByTestId("day")', 'getByTestId("time")'):
+    if unstable_child_mask in visual_mask_body:
+        fail(f"child-count-dependent visual mask returned: {unstable_child_mask}")
+
+playwright_config = read("playwright.config.ts")
+if "__screenshots__/{platform}/{testFilePath}/{arg}{ext}" not in playwright_config:
+    fail("visual snapshots must remain platform-specific")
 
 booking_page_source = read("tests/browser/pages/booking-page.ts")
 for readiness_contract in (
@@ -103,6 +121,25 @@ for readiness_contract in (
 ):
     if readiness_contract not in booking_page_source:
         fail(f"booking-route readiness contract is missing: {readiness_contract}")
+for instant_contract in (
+    'Promise<string>',
+    'getAttribute("data-time")',
+    'Selected time has no UTC instant',
+):
+    if instant_contract not in booking_page_source:
+        fail(f"booking selection does not retain its UTC instant: {instant_contract}")
+
+timezone_source = read("tests/timezones/timezones.spec.ts")
+for lifecycle_contract in (
+    "a New York host and Kathmandu booker keep one instant through reschedule and email",
+    'hostZone = "America/New_York"',
+    'bookerZone = "Asia/Kathmandu"',
+    'organizerZone = "Europe/London"',
+    'cross-zone-lifecycle.json',
+    'wallTimeToken(requiredInstant(bookerReplacement))',
+):
+    if lifecycle_contract not in timezone_source:
+        fail(f"cross-zone lifecycle contract is missing: {lifecycle_contract}")
 
 update_script = read("scripts/update-snapshots.sh")
 if (

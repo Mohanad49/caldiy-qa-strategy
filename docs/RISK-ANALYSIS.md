@@ -8,12 +8,14 @@ instants. The damage is not cosmetic: the parties miss the meeting, the slot may
 remain unavailable, and reschedule or cancellation notices may disagree with the
 product.
 
-This document defines the failure model before implementation. It does not claim
-that any listed case has been executed or that Cal.diy currently has these bugs.
+This failure model was written before implementation and is retained so the
+tests can be judged against the original risks. The coverage map at the end now
+distinguishes executed evidence, observed product limitations, and residual
+risk; listing a failure mode is never itself a defect claim.
 
 ## Time model and invariants
 
-The planned tests distinguish three values that are often collapsed:
+The implemented tests distinguish three values that are often collapsed:
 
 - **Instant:** the unique point on the UTC timeline stored and exchanged by the
   system.
@@ -38,7 +40,7 @@ Additional invariants:
 
 ## Failure catalogue
 
-| ID | Failure mode | Observable consequence | Planned evidence |
+| ID | Failure mode | Observable consequence | Evidence design |
 |---|---|---|---|
 | TZ-01 | Local time is stored as if it were UTC | Booking shifts by the zone offset | API value, UI labels, independent oracle |
 | TZ-02 | Host and booker zones are applied in the wrong direction | Both parties see plausible but different instants | Two browser contexts plus API instant |
@@ -74,8 +76,10 @@ The following zones are selected for distinct rules, not geographic coverage:
 | `America/Phoenix` | No DST paired with zones that do transition |
 
 The full cross-product would create noise without proportionate information.
-Tests will use pairwise combinations plus targeted transition pairs. Every zone
-must appear as both host and booker in at least one case.
+The suite uses targeted pairs instead of the full cross-product. Every zone is
+checked as a host-schedule and browser-formatting context; a focused New York
+host/Kathmandu booker lifecycle exercises real cross-zone booking, date rollover,
+rescheduling, and notification timestamps.
 
 ## Deterministic test design
 
@@ -90,7 +94,7 @@ container clock. Therefore “use Playwright Clock” is not a complete DST stra
 Treating it as one would produce deterministic browser labels around a server
 whose definition of “now” continues to move.
 
-### Planned control scheme
+### Implemented control scheme
 
 1. Keep containers in UTC and pass IANA zone identifiers explicitly.
 2. Generate transition cases from an independent Python `zoneinfo` oracle backed
@@ -106,10 +110,10 @@ whose definition of “now” continues to move.
 7. Add fixed historical canaries, including Cairo's 2023 rule change, for logic
    that does not reject past bookings. Keep future-flow tests separate.
 
-If API v2 cannot create the required state without consulting live server time,
-Phase 2 must expose that limitation rather than bypassing validation through SQL.
-The acceptable alternatives are a supported test hook upstream or dynamically
-generated future transitions with the exact chosen instants recorded.
+Where API v2 cannot create required historical or boundary state without
+consulting live server time, the suite records that limitation rather than
+bypassing validation through SQL. Future transitions are generated dynamically
+and the exact selected instants are retained.
 
 ## Boundary scenarios
 
@@ -161,8 +165,9 @@ generated future transitions with the exact chosen instants recorded.
 - Never derive expected values with the same library and transformation used by
   the SUT; that tests the library against itself.
 - A tzdata-version mismatch is reported separately from a product regression.
-- Property-style checks will cover round trips: local + zone → instant → local
-  must return the original unambiguous value.
+- Round-trip invariance remains a design rule. The delivered suite compares
+  retained UTC instants with independently converted local values; it does not
+  claim a generative local → instant → local property suite.
 
 ## Severity guidance
 
@@ -177,9 +182,22 @@ generated future transitions with the exact chosen instants recorded.
 Severity is finalized from reproduced impact, not assigned mechanically from
 this table.
 
-## Exit evidence for the timezone suite — planned
+## Delivered coverage map
 
-The future suite is complete only when every catalogue item maps to an automated
-case or a documented product limitation, each selected zone is exercised as host
-and booker, transition instants and tzdata versions are retained, and failures
-include API, UI, and Mailpit evidence where applicable.
+| Risk IDs | Delivered evidence or limitation |
+|---|---|
+| TZ-01–TZ-03 | Nine-zone slot/UTC/browser comparison, including Kolkata, Kathmandu, and Eucla fractional offsets |
+| TZ-04–TZ-05 | Future gap/fold enumeration; Cairo's missing repeated-hour instant is retained as `CALDIY-LOCAL-001` |
+| TZ-06–TZ-07 | Sydney/New York opposing-season and Phoenix/non-DST offset comparisons |
+| TZ-08 | Pinned future Cairo transition plus the recorded empty historical-2023 window limitation |
+| TZ-09 | Sydney 90-minute boundary case verifies elapsed duration or records product slot exclusion |
+| TZ-10, TZ-16 | New York 23:00 availability booked from Kathmandu proves cross-zone interpretation and local-date rollover |
+| TZ-11 | The same cross-zone booking is rescheduled; the replacement API instant, UI timestamp, and attendee email are compared |
+| TZ-12 | The snapshot omits one Cairo fold instant, so two same-label occurrences cannot be booked; cancellation-by-identity remains covered in the lifecycle suite |
+| TZ-13 | Organizer and attendee notification timestamps are derived from the retained UTC instants through the independent oracle |
+| TZ-14–TZ-15 | Every timezone artifact records `tzdata==2026.3`; a dedicated Clock test proves the server clock remains independent |
+
+The suite exits with 14 executable Playwright tests after the cross-zone
+lifecycle addition. Exact instants and tzdata versions are retained, while the
+Cairo fold, historical Cairo window, and Sydney crossing-slot exclusions remain
+explicit limitations rather than SQL-created test states.

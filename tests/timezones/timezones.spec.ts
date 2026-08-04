@@ -2,6 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 
 import { expect, test } from "../browser/fixtures.js";
 import { firstEventType } from "../browser/fixture-manager.js";
+import { BookingPage } from "../browser/pages/booking-page.js";
 import {
   TimezoneOracle,
   type OracleInstant,
@@ -190,6 +191,114 @@ test("opposing hemispheres, DST/non-DST, and fractional offsets remain distingui
   );
 });
 
+test("a New York host and Kathmandu booker keep one instant through reschedule and email", async ({
+  browser,
+  request,
+  fixtureManager,
+  mailpit
+}, testInfo) => {
+  const hostZone = "America/New_York";
+  const bookerZone = "Asia/Kathmandu";
+  const organizerZone = "Europe/London";
+  const manifest = await fixtureManager.create({
+    timeZone: hostZone,
+    startTime: "23:00",
+    endTime: "23:59",
+    lengthMinutes: 30
+  });
+  const event = firstEventType(manifest);
+  const context = await browser.newContext({
+    baseURL: process.env.CALDIY_WEB_URL ?? `http://localhost:${process.env.CALDIY_WEB_PORT ?? "3000"}`,
+    locale: "en-US",
+    timezoneId: bookerZone,
+    storageState: { cookies: [], origins: [] }
+  });
+  const page = await context.newPage();
+  const booking = new BookingPage(page);
+  const attendee = {
+    name: `QA cross-zone ${testInfo.workerIndex}`,
+    email: `qa+cross-zone-${Date.now()}@example.com`
+  };
+  const startedAt = new Date();
+
+  await booking.open(event.bookingPath);
+  const selectedInstant = await booking.chooseFirstSlotNextMonth();
+  const initialUid = await booking.book(attendee);
+  fixtureManager.trackBooking(manifest, initialUid);
+
+  const [hostInitial] = await oracle.convert(hostZone, [selectedInstant]);
+  const [bookerInitial] = await oracle.convert(bookerZone, [selectedInstant]);
+  const [organizerInitial] = await oracle.convert(organizerZone, [selectedInstant]);
+  expect(hostInitial?.wall.slice(0, 10)).not.toBe(bookerInitial?.wall.slice(0, 10));
+  expect(normalizeTimestamp(await booking.whenText())).toContain(wallTimeToken(requiredInstant(bookerInitial)));
+
+  const organizerMessage = await mailpit.waitForMessage(
+    "owner1-acme@example.com",
+    (candidate) => {
+      const subject = normalizeTimestamp(candidate.Subject);
+      return (
+        candidate.Subject.startsWith("[Action Required] Confirmed:") &&
+        subject.includes(wallTimeToken(requiredInstant(organizerInitial))) &&
+        mailpit.body(candidate).includes(attendee.email)
+      );
+    },
+    { after: startedAt }
+  );
+
+  const rescheduledAt = new Date();
+  const replacementUid = await booking.reschedule(initialUid);
+  fixtureManager.trackBooking(manifest, replacementUid);
+  const replacementInstant = await bookingStart(request, replacementUid);
+  const [bookerReplacement] = await oracle.convert(bookerZone, [replacementInstant]);
+  expect(normalizeTimestamp(await booking.whenText())).toContain(
+    wallTimeToken(requiredInstant(bookerReplacement))
+  );
+
+  const attendeeMessage = await mailpit.waitForMessage(
+    attendee.email,
+    (candidate) => {
+      const subject = normalizeTimestamp(candidate.Subject);
+      const body = mailpit.body(candidate).toLowerCase();
+      return (
+        body.includes(event.title.toLowerCase()) &&
+        body.includes("reschedul") &&
+        subject.includes(wallTimeToken(requiredInstant(bookerReplacement)))
+      );
+    },
+    { after: rescheduledAt }
+  );
+
+  await testInfo.attach("cross-zone-lifecycle.json", {
+    body: Buffer.from(
+      JSON.stringify(
+        {
+          hostZone,
+          bookerZone,
+          organizerZone,
+          tzdataVersion: matrix.tzdataVersion,
+          initial: {
+            utc: selectedInstant,
+            host: hostInitial,
+            booker: bookerInitial,
+            organizer: organizerInitial,
+            organizerEmailSubject: organizerMessage.Subject
+          },
+          rescheduled: {
+            uid: replacementUid,
+            utc: replacementInstant,
+            booker: bookerReplacement,
+            attendeeEmailSubject: attendeeMessage.Subject
+          }
+        },
+        null,
+        2
+      )
+    ),
+    contentType: "application/json"
+  });
+  await context.close();
+});
+
 test("Sydney spring-gap boundary behavior preserves duration or records slot exclusion", async ({
   browser,
   request,
@@ -344,4 +453,34 @@ function wallMinutes(start: OracleInstant, end: OracleInstant): number {
   const startWithoutOffset = new Date(`${start.wall}Z`).valueOf();
   const endWithoutOffset = new Date(`${end.wall}Z`).valueOf();
   return (endWithoutOffset - startWithoutOffset) / 60_000;
+}
+
+function requiredInstant(value: OracleInstant | undefined): OracleInstant {
+  if (value === undefined) throw new Error("Timezone oracle returned no converted instant");
+  return value;
+}
+
+function wallTimeToken(value: OracleInstant): string {
+  const [hourText, minute = "00"] = value.wall.slice(11, 16).split(":");
+  const hour = Number(hourText);
+  const suffix = hour >= 12 ? "pm" : "am";
+  const twelveHour = hour % 12 || 12;
+  return `${twelveHour}:${minute}${suffix}`;
+}
+
+function normalizeTimestamp(value: string): string {
+  return value.toLowerCase().replace(/\s+/g, "");
+}
+
+async function bookingStart(
+  request: import("@playwright/test").APIRequestContext,
+  uid: string
+): Promise<string> {
+  const response = await request.get(`${apiURL}/v2/bookings/${uid}`, {
+    headers: { Authorization: `Bearer ${apiKey}`, "cal-api-version": "2024-08-13" }
+  });
+  expect(response.status(), await response.text()).toBe(200);
+  const payload = (await response.json()) as { data?: { start?: unknown } };
+  if (typeof payload.data?.start !== "string") throw new Error(`Booking ${uid} has no start instant`);
+  return payload.data.start;
 }

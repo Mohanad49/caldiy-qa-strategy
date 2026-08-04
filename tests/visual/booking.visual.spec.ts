@@ -31,10 +31,12 @@ test.describe("mobile booking visual", () => {
 });
 
 function dynamicCalendarRegions(page: import("@playwright/test").Page): import("@playwright/test").Locator[] {
+  // Calendar cells and available-slot counts depend on the server's real date.
+  // Mask their fixed grid sections as units so changing child counts cannot
+  // move mask boundaries while the surrounding responsive shell stays tested.
+  const booker = page.getByTestId("booker-container");
   return [
-    page.getByTestId("selected-month-label"),
-    page.getByTestId("day"),
-    page.getByTestId("time"),
-    page.getByTestId("booker-container").locator("header > span")
+    booker.locator(':scope > [class*="[grid-area:main]"]'),
+    booker.locator(':scope > [class*="[grid-area:timeslots]"]')
   ];
 }

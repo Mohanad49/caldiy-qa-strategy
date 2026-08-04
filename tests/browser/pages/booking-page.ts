@@ -32,14 +32,17 @@ export class BookingPage {
     await expect(this.page.getByTestId("booker-container")).toBeVisible();
   }
 
-  async chooseFirstSlotNextMonth(): Promise<void> {
+  async chooseFirstSlotNextMonth(): Promise<string> {
     await this.page.getByTestId("incrementMonth").click();
     const day = this.page.locator('[data-testid="day"][data-disabled="false"]').first();
     await expect(day).toBeVisible();
     await day.click();
     const time = this.page.getByTestId("time").first();
     await expect(time).toBeVisible();
+    const instant = await time.getAttribute("data-time");
+    expect(instant, "Selected time has no UTC instant").not.toBeNull();
     await time.click();
+    return instant as string;
   }
 
   async book(attendee: Attendee): Promise<string> {
