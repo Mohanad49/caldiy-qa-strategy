@@ -163,6 +163,31 @@ claimed.
 `ENABLE_ALLURE_PAGES` remains absent, so Pages publication is disabled while
 the repository is private. The repository remains private.
 
+## Flaky-test policy
+
+The repository has zero quarantined tests and configures no product-test
+retries. A first failure is retained with its original trace, screenshot, video,
+response, or k6 evidence; a later passing run does not erase it.
+
+The repository maintainer, Mohanad, owns classification and quarantine. A test
+may be called flaky only after the same commit is rerun in an isolated
+environment and the evidence rules out a deterministic product failure. An
+infrastructure outage, a real booking conflict, an accessibility violation, or
+an undocumented contract response is not reclassified merely because a rerun
+passes.
+
+Any future quarantine requires a linked issue containing the evidence, named
+owner, narrow test identity, reason, and an expiry no later than 14 days. The
+change must add a scheduled non-blocking execution path before the blocking
+path may skip that test. An expired quarantine becomes blocking; it is not
+silently extended.
+
+A quarantined test returns to the blocking suite only after its root cause or
+test defect is fixed and it passes three consecutive isolated runs of the same
+commit. The linked issue records those run URLs. Repository validation must be
+extended with any quarantine mechanism so an unowned or expired skip cannot be
+merged.
+
 ## Known limitations
 
 The private hosted runner must load a roughly 4.9 GB API image. An authenticated

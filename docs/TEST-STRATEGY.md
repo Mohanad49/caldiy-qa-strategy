@@ -7,9 +7,9 @@ criteria for an independent QA engagement against Cal.diy. It is written for a
 product stakeholder deciding what confidence the engagement can provide and for
 an engineer who must implement the tests without quietly changing that scope.
 
-This document distinguishes delivered evidence from planned work. The
-repository README is the source of truth for delivery status, while subsystem
-documents record the evidence behind an implemented phase.
+This document records the delivered engagement and its enduring boundaries.
+The repository README is the source of truth for current status and measured
+results; subsystem documents retain the evidence behind each phase.
 
 ## Product and version boundary
 
@@ -49,7 +49,7 @@ Likelihood and impact are scored from 1 (low) to 5 (very high). The score is
 `likelihood × impact`; it determines implementation order, not defect severity.
 A rare data-integrity failure may still be a critical defect.
 
-| Priority | Risk | Likelihood | Impact | Score | Primary evidence planned |
+| Priority | Risk | Likelihood | Impact | Score | Primary evidence |
 |---:|---|---:|---:|---:|---|
 | 1 | Timezone or DST conversion changes the intended booking instant | 4 | 5 | 20 | API boundaries plus timezone-focused E2E |
 | 2 | Concurrent requests overbook a capacity-one slot | 3 | 5 | 15 | API concurrency test and k6 contention gate |
@@ -78,8 +78,8 @@ The detailed failure model for priority 1 is in `docs/RISK-ANALYSIS.md`.
 | Performance | This repository, Phase 4 | Availability reads and booking contention in local Docker |
 | Observability and reporting | This repository, Phase 5 | Allure evidence and longitudinal TestPulse ingestion |
 
-BDD will not wrap low-level API, boundary, schema, or visual tests. Step
-definitions will reuse the Playwright fixtures and page objects rather than
+BDD does not wrap low-level API, boundary, schema, or visual tests. Step
+definitions reuse the Playwright fixtures and page objects rather than
 forming a second automation framework.
 
 ## Environments
@@ -96,11 +96,15 @@ The environment is the reference for development and deterministic functional
 checks. It is not a production topology, security baseline, or production SLO
 environment.
 
-### CI environment — planned
+### CI environment
 
-Later phases will use the same SUT tag and database major version on an amd64
-runner. Each job will receive isolated data. CI will retain evidence only on
-failure and will not receive credentials for a real Cal.com or calendar account.
+GitHub Actions uses amd64 hosted Linux runners, the same controlled SUT commit,
+and the same pinned database major version. Every live job starts an isolated
+stack and creates independent data. Failure traces, screenshots, and videos are
+retained for 14 days; merged reports and contract/performance evidence are
+retained for 30 days. CI receives no credentials for hosted Cal.com, external
+calendars, payments, or OAuth providers. Pull-request jobs cannot ingest
+TestPulse history.
 
 ### Current-upstream confirmation — defect triage only
 
@@ -177,6 +181,50 @@ and memory qualification. The image is non-distributable and stays local.
 - Local compatibility findings are versioned and are not presented as current
   upstream defects.
 - Mohanad approves the Phase 2 decision-log entries before the closing commit.
+
+### Phase 3 exit
+
+- Chromium lifecycle coverage and focused Firefox smoke coverage pass without
+  retries and clean their API-created prerequisites.
+- Exactly three Cucumber journeys reuse the browser fixtures and page objects.
+- The nine-zone matrix records exact UTC instants and pinned tzdata evidence,
+  including gap, fold, fractional-offset, Cairo, and opposing-hemisphere cases.
+- Axe findings remain blocking and unsuppressed; visual baselines are guarded,
+  platform-specific, and pass ordinary comparison on their source platform.
+- Snapshot-only observations are not filed as current defects without current
+  reproduction.
+
+### Phase 4 exit
+
+- Five complete local baseline runs calibrate the availability threshold using
+  the declared formula, and the value is labeled as a local Docker threshold.
+- Availability and unique-booking workloads stay below the non-contention error
+  gate and clean their active resources.
+- Twenty-way contention produces exactly one successful and one persisted
+  capacity-one booking, with expected conflicts reported separately.
+- Threshold outcomes produce honest JUnit cases while detailed k6 distributions
+  and environment metadata remain artifacts.
+
+### Phase 5 exit
+
+- Pull-request, push, and nightly/manual tiers enforce their documented scope;
+  four Playwright blobs merge exactly once.
+- Failure evidence, merged reports, and Allure output follow the 14/30-day
+  retention policy, and Pages remains explicitly gated until public release.
+- TestPulse secret checks reveal presence only; eligible reports use four stable
+  suite names and ingestion cannot change product confidence.
+- The flaky-test policy names the owner, quarantine evidence/expiry, and return
+  criteria. No current test is quarantined or retried.
+
+### Phase 6 exit
+
+- Every historical finding has a current disposition without manufacturing a
+  current defect from snapshot-only evidence.
+- Filed reports include exact commit, duplicate search, steps, impact boundary,
+  evidence, and labeled root-cause inference.
+- Public issues link back to the professional reports, and hosted Cal.com remains
+  explicitly untested.
+- Mohanad approves the final decision statements before the closing commit.
 
 Every phase retains the same rule: passing evidence, independent rerunability,
 truthful status, and an approved decision-log update are required before its

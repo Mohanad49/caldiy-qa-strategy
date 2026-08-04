@@ -18,6 +18,8 @@ required_files=(
   docs/PHASE-3-EVIDENCE.md
   docs/PHASE-4-EVIDENCE.md
   docs/PHASE-5-CI.md
+  docs/MAINTENANCE.md
+  docs/PUBLIC-RELEASE.md
   docs/defects/README.md
   docs/defects/DEFECT-001-duplicate-openapi-operation-ids.md
   docs/defects/DEFECT-002-default-booking-field-type.md

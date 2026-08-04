@@ -1,0 +1,78 @@
+# Maintenance and durability
+
+This repository is reproducible because it is pinned, not because its
+dependencies never change. The controlled SUT remains Cal.diy `v6.2.0` at
+`1c193cca8682b33b9866c792186033f7ef886682`; upgrading that target is a new
+engagement and requires a new decision, baseline, and evidence set.
+
+## Routine signal
+
+The scheduled workflow exercises the controlled API twice, the timezone
+matrix, performance gates, and the moving current-main advisory. A scheduled
+failure is triaged into one of three buckets before changing a test:
+
+1. controlled-snapshot product behavior;
+2. test or fixture behavior;
+3. infrastructure or dependency behavior.
+
+The original failing artifact is retained. Product assertions are not retried
+into green, and current-main drift never changes the controlled SUT result.
+
+## Dependency review
+
+Review pins monthly and after a GitHub runner deprecation notice. Update one
+toolchain at a time, retain immutable action SHAs and image digests, then run
+`make validate`, clean bootstrap, API qualification, and the affected live
+suite before merging.
+
+The high-risk pins are:
+
+- GitHub Actions and BuildKit SHAs;
+- `uv`, Python, Node, pnpm, Playwright, Cucumber, axe, and Allure;
+- PostgreSQL, Redis, Mailpit, Node builder, and Cal.diy image digests;
+- k6 archive versions and hashes;
+- the TestPulse action commit and its installation behavior;
+- Python `tzdata`, which changes future transition expectations by design.
+
+The CI `uv` pin is `0.12.1`. It replaced `0.8.17` after hosted-runner `pipx`
+began requiring `uv >= 0.9.17`; a real manual run exposed that incompatibility.
+Do not lower it without reproducing all five TestPulse ingestion calls.
+
+The TestPulse call is non-blocking for product confidence, but an ingestion
+error must remain visible as an annotation and workflow-summary entry. Repin
+TestPulse only after a manual run proves API, merged E2E, BDD, and merged
+performance ingestion. The database secret is checked only for presence and
+must never be echoed, copied into an artifact, or used by pull-request jobs.
+
+## Visual baselines
+
+Chromium screenshots are stored separately for `darwin` and `linux`; text
+rasterization is platform-dependent. Calendar and timeslot grid sections are
+masked because their child count and geometry depend on the server's real date.
+The event metadata, responsive shell, controls, borders, and branding remain
+visible to comparison.
+
+Run the guarded update on the platform whose baseline is changing, inspect both
+images, then rerun ordinary comparison mode at least once. Never copy a baseline
+between platforms and call the result verified.
+
+## Recovery rules
+
+- If a registry no longer serves a pinned digest, stop and select a replacement
+  from an official release; never remove digest pinning to get a build through.
+- If both permitted API build heaps fail, stop. Do not substitute API v1 or
+  hosted Cal.com.
+- If upstream changes its seed, revalidate fixture identities and routes before
+  changing smoke expectations.
+- If tzdata changes, regenerate the oracle evidence and review transition
+  changes rather than freezing obsolete rules.
+- If an upstream issue is fixed, keep the filed report pinned to its reproduced
+  commit and update only its current disposition.
+
+## Periodic clean-room check
+
+At least quarterly, use an amd64 machine with an empty `.env`, no project
+volumes, and no local API image. Run bootstrap, repeated bootstrap, the guarded
+reset, exact-source API build and qualification, all live suites, and a final
+project-scoped reset. This detects dependencies accidentally satisfied only by
+one workstation cache.
