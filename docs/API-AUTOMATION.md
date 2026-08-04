@@ -42,7 +42,13 @@ The `caldiy-fixtures create --json` and `caldiy-fixtures destroy --json` command
 
 Every documented response is first validated against that unmodified snapshot. Undocumented error statuses are validated against the committed common error-envelope schema and reported as contract omissions. Proven defects in the pinned document use narrow, code-defined projections only after the original validation fails. A projected response is accepted only when the entire response then validates; an unknown mismatch still fails the test.
 
-The tagged snapshot currently has 14 evidence-backed local compatibility findings in `docs/findings`. F-001 is a full-document path-parameter defect. F-002 through F-014 were reproduced against runtime responses and cover event-type, schedule, slots, and booking schema mismatches. They have not been reproduced against current Cal.diy or filed upstream; that remains Phase 6 work.
+The tagged snapshot has 14 evidence-backed local compatibility findings in
+`docs/findings`. Phase 6 compared every one with current public Cal.diy `main`:
+F-002 was reproduced from current source and contract and filed as
+[calcom/cal.diy#29904](https://github.com/calcom/cal.diy/issues/29904); F-001,
+F-003 and F-004 no longer contain the faulty contract condition; F-005 through
+F-014 remain local because their current runtime responses were not reproduced.
+The complete disposition is in `docs/defects/README.md`.
 
 ## Implemented coverage
 
@@ -63,8 +69,11 @@ On 2026-07-31, `make test-api` passed 13 of 13 tests using four xdist workers in
 
 ## Remaining limitations
 
-- GitHub Actions does not run the API suite yet; Phase 5 owns CI evidence.
-- Mailpit notification correlation is not implemented until the browser lifecycle work in Phase 3.
+- The local numbers above are Phase 2 evidence; later CI results are documented
+  separately in `docs/PHASE-5-CI.md`.
+- Mailpit notification correlation belongs to the later browser lifecycle layer,
+  not this API suite.
 - The suite does not test payments, OAuth providers, API v1, license enforcement, enterprise features, or hosted Cal.com.
-- The current Cal.diy `main` contract comparison and upstream issue eligibility remain advisory/Phase 6 work.
+- Current-main contract and defect auditing remains informational and does not
+  change the controlled `v6.2.0` SUT.
 - No performance, accessibility, visual, browser, BDD, or timezone-transition result is implied by this phase.

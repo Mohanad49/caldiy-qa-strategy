@@ -87,9 +87,9 @@ produced three local findings:
 - [`CALDIY-LOCAL-004`](findings/CALDIY-LOCAL-004.md) — serious Terms and Privacy link distinction failure.
 
 The findings contain the affected surface, rule, impact, observed nodes and
-local reproduction command. None has been filed upstream. Phase 6 requires
-duplicate searching and reproduction against current Cal.diy before any
-upstream report is eligible.
+local reproduction command. Phase 6 did not exercise the current Cal.diy UI,
+so none was promoted or filed upstream. Their explicit disposition is recorded
+in `docs/defects/README.md`.
 
 ## Visual evidence
 
