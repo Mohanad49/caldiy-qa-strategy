@@ -196,6 +196,11 @@ def main() -> None:
         testpulse_action.count(testpulse_sha) == 1 and "@main" not in testpulse_action,
         "TestPulse package must be installed from the exact reviewed commit",
     )
+    setup_python_sha = "5fda3b95a4ea91299a34e894583c3862153e4b97"
+    require(
+        testpulse_action.count(setup_python_sha) == 1,
+        "TestPulse adapter must use the reviewed Node 24 setup-python revision",
+    )
     require(
         "::error::TestPulse ingest failed" in testpulse_action
         and "GITHUB_STEP_SUMMARY" in testpulse_action,
