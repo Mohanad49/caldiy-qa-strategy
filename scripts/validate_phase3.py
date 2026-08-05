@@ -158,6 +158,11 @@ for lifecycle_contract in (
         fail(f"cross-zone lifecycle contract is missing: {lifecycle_contract}")
 
 update_script = read("scripts/update-snapshots.sh")
+makefile = read("Makefile")
+if "test-visual:" not in makefile:
+    fail("Makefile lacks ordinary visual-comparison target")
+if "./scripts/browser-test.sh visual" not in makefile:
+    fail("test-visual target does not use the shared browser runner")
 if (
     'expected="caldiy-qa-strategy"' not in update_script
     or '"${CONFIRM:-}" != "${expected}"' not in update_script
