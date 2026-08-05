@@ -212,7 +212,7 @@ implementation.
 - **Consequences:** Chromium failures govern these Phase 3 gates; Firefox can
   reveal lifecycle incompatibilities but does not establish visual or timezone
   parity.
-- **Evidence:** The 12-test lifecycle run, 13-test timezone run, three-surface
+- **Evidence:** The 12-test lifecycle run, 14-test timezone run, three-surface
   axe run, and two Chromium visual comparisons.
 
 ### D-013 — Keep Gherkin selective
@@ -243,7 +243,7 @@ implementation.
 - **Consequences:** Results record explicit UTC instants and tzdata versions,
   while tests separately verify that browser clock control did not freeze the
   server.
-- **Evidence:** The 13-of-13 transition matrix and attached oracle records for
+- **Evidence:** The 14-of-14 transition matrix and attached oracle records for
   nine named zones.
 
 ### D-015 — Preserve the real notification boundary
@@ -287,12 +287,14 @@ implementation.
 - **Decision:** I mask only the proven dynamic calendar regions and require
   `CONFIRM=caldiy-qa-strategy` before updating the two committed Chromium
   baselines.
-- **Rejected alternative:** Auto-update snapshots, mask the complete calendar,
-  or omit dynamic controls and accept date-driven churn.
+- **Rejected alternative:** Auto-update snapshots, mask the complete booking
+  widget, use child-count-dependent day/time masks, or accept date-driven churn.
 - **Consequences:** Reviews retain layout evidence at 1440×900 and 390×844;
   baseline changes are explicit and ordinary comparison cannot overwrite them.
-- **Evidence:** The refused unconfirmed update, confirmed update, clean ordinary
-  comparison, and exact PNG dimension checks in repository validation.
+- **Evidence:** The refused unconfirmed update, guarded Darwin update and clean
+  ordinary comparison, inspected Linux expected/actual/diff artifact, guarded
+  Linux import, ordinary hosted-Linux 2/2 comparison in run `30964383774`, and
+  exact platform-specific PNG checks in repository validation.
 
 ### D-018 — Keep snapshot findings local until current reproduction
 
@@ -411,7 +413,9 @@ context, consequences, and evidence record the Phase 4 implementation.
 
 Mohanad approved the eight **Decision** statements on 2026-08-04. The
 surrounding context, consequences, and evidence record the Phase 5
-implementation.
+implementation. The 2026-08-05 release audit revisited D-028's implementation
+outcome after separating a visual-harness defect from the real accessibility
+result; it does not claim a newly user-authored decision statement.
 
 ### D-024 — Cache the build without distributing the API image
 
@@ -471,24 +475,37 @@ implementation.
 - **Consequences:** Product confidence remains grounded in source reports while
   reporting failures stay visible. The secret is verified by presence only and
   its value is never printed or copied.
-- **Evidence:** Pinned TestPulse action calls and successful presence and
-  ingestion steps for all four stable suites in manual run `30932432000`.
+- **Evidence:** Manual run `30932432000` proved secret presence and merged E2E
+  ingestion but exposed four `uv`/`pipx` installation failures. Push run
+  `30960025297` then proved API, BDD, and once-merged E2E ingestion after the
+  compatible `uv` pin. Push run `30965349762` repeated those three paths through
+  the immutable Node 24 adapter. Manual run `30966169388` completed all five
+  eligible calls as TestPulse runs 183–187, including repeated API and merged
+  performance evidence.
 
 ### D-028 — Do not manufacture a green quality workflow
 
-- **Status:** Accepted
+- **Status:** Revisited
 - **Context:** Cal.diy `v6.2.0` has documented serious/critical accessibility
   findings, and hosted Linux text rendering does not match the committed macOS
   visual baselines.
-- **Decision:** I keep the accessibility and visual gates red, retain their
-  evidence, and omit the CI badge until the real workflow succeeds; I will not
+- **Decision:** At the Phase 5 checkpoint, I kept the accessibility and visual
+  gates red, retained their evidence, and omitted the CI badge; I would not
   suppress findings or promote Linux snapshots without explicit confirmation.
 - **Rejected alternative:** Waive axe violations, loosen screenshot thresholds,
   silently replace baselines, or badge a knowingly failing workflow.
-- **Consequences:** The repository has no green quality badge yet, but its CI
-  conclusion matches the actual controlled-snapshot evidence.
+- **Consequences:** The release audit fixed the visual harness and accepted
+  Linux baselines only after guarded inspection and a clean ordinary rerun.
+  Accessibility remains red, so the repository still has no green quality
+  badge and its CI conclusion matches the controlled-snapshot evidence.
 - **Evidence:** BDD 3/3, accessibility 1/3, visuals 0/2, and retained diffs,
-  traces, screenshots, and videos in run `30778631910`.
+  traces, screenshots, and videos in run `30778631910`. The release audit later
+  isolated the visual failures as platform-baseline and mask defects: a
+  full-page masked actual from `30962249720` was rejected, a narrow inspected
+  baseline was imported from `30963385880`, and ordinary run `30964383774`
+  passed visuals 2/2. The approved principle remains unchanged: accessibility
+  stays red and unbadged; a harness defect is fixed rather than preserved as a
+  false product signal.
 
 ### D-029 — Keep private report publication disabled
 
@@ -521,7 +538,8 @@ implementation.
 - **Consequences:** CI can surface drift and runner performance without changing
   the version boundary or overstating what the evidence proves.
 - **Evidence:** The controlled commit pin, run `30777108027` current-upstream
-  advisory artifact, and retained k6 environment metadata.
+  advisory artifact, final manual run `30966169388`, and retained k6 environment
+  metadata.
 
 ### D-031 — Wait for fixture visibility without retrying tests
 
@@ -616,4 +634,5 @@ implementation.
   without rewriting the report's evidence or changing the `v6.2.0` test target.
 - **Evidence:** Current audit OpenAPI SHA-256
   `16de9d3eb7b37a4e40caeead4af521cb6b32356b3d556311e5afc3a33c8b2f47`,
-  retained advisory paths, and issue links #29903 and #29904.
+  retained advisory paths from final manual run `30966169388`, and issue links
+  #29903 and #29904.

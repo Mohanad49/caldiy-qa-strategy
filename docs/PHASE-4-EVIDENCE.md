@@ -65,6 +65,17 @@ The availability and booking run produced four passing JUnit threshold cases.
 The contention run produced six passing JUnit threshold cases. Both JUnit files
 use the stable `caldiy-performance-gates` suite name and contain zero failures.
 
+## Final local recheck
+
+The 2026-08-05 release audit reran both stable commands against the cleanly
+rebuilt stack. Availability completed 871 measured iterations with zero
+application errors and p95 1,212.828 ms under the 2,300 ms gate; the raw HTTP
+set contained 889 calls including warm-up. Booking throughput completed 50 of
+50 unique bookings with zero application or cleanup errors and an informational
+2,756.148 ms request p95. Contention again produced exactly one success, 19
+expected conflicts and one persisted booking, with zero unexpected,
+persistence or cleanup errors.
+
 ## Evidence and reporting
 
 Each run retains its k6 summary, gzip-compressed raw k6 JSON, fixture and
@@ -72,8 +83,8 @@ cleanup manifests, plus SUT, host, Docker-resource, k6-version, and
 test-repository-commit metadata under the ignored `test-results/performance/`
 tree. Threshold outcomes are converted to JUnit with the stable suite name
 `caldiy-performance-gates`; detailed latency distributions remain k6
-artifacts. TestPulse ingestion remains Phase 5 work and no Phase 4 result has
-been sent to it.
+artifacts. Phase 5 owns eligible TestPulse ingestion and records its actual CI
+evidence separately.
 
 k6 is pinned to v2.1.0. The project verifies upstream release archives before
 extraction with SHA-256

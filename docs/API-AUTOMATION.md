@@ -66,7 +66,16 @@ delivers the synchronized 20-request k6 gate.
 
 ## Local evidence
 
-On 2026-07-31, `make test-api` passed 13 of 13 tests using four xdist workers in 17.58 seconds and reported 77% branch-aware package coverage. The run generated JUnit XML, coverage XML, per-worker contract-deviation/omission reports, and Allure-compatible raw results. These are local results, not a CI claim, and they have not been ingested into TestPulse.
+On 2026-07-31, the Phase 2 checkpoint passed 13 of 13 tests using four xdist
+workers in 17.58 seconds and reported 77% branch-aware coverage of the package
+as it existed at that checkpoint. The 2026-08-05 clean-room audit passed the
+same 13 cases in 17.924 seconds. The package now also contains later-phase
+reporting and audit modules, so the final repository-wide package result is 65%;
+neither percentage is presented as product-code coverage.
+
+The runs generate JUnit XML, coverage XML, per-worker contract-deviation and
+omission reports, and Allure-compatible raw results. Phase 5 owns eligible CI
+ingestion into TestPulse; the original Phase 2 checkpoint itself was local only.
 
 ## Remaining limitations
 

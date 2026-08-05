@@ -19,6 +19,10 @@ One annotated setup retry is permitted only when that pre-build infrastructure
 step fails. Test execution, image compilation, contract validation, and product
 assertions are never retried.
 
+Every job uses the explicit stable `ubuntu-24.04` runner label. The moving
+`ubuntu-latest` alias is forbidden by repository validation so an operating
+system transition cannot silently redefine the visual or runtime environment.
+
 ## Tiers
 
 Pull requests run repository validation, a live API v2 smoke check, and the 18
@@ -70,12 +74,19 @@ suites:
 - `caldiy-bdd`
 - `caldiy-performance-gates`
 
-The action is pinned to TestPulse commit
-`2696d715e7b18f2ef029e291f37371d6b4bb01fb`. It receives
-`TESTPULSE_DATABASE_URL` only as a masked secret input. Secret checks emit only
-a boolean presence output. Ingestion is `continue-on-error`: a TestPulse outage
-cannot change product confidence, while the pinned action adds an error
-annotation and workflow-summary failure record.
+The repository-owned composite adapter installs `testpulse-core[postgres]`
+from exact TestPulse commit
+`2696d715e7b18f2ef029e291f37371d6b4bb01fb` and pins its Python setup action by
+full SHA. The setup action is `v7.0.0`, whose action metadata uses Node 24; this
+replaces the passing-but-deprecated Node 20 runtime observed during the final
+audit. The adapter exists because the upstream action at that commit installs its
+package from mutable `main`; pinning only the outer action did not make the
+executed package immutable.
+
+The adapter receives `TESTPULSE_DATABASE_URL` only as a masked secret input.
+Secret checks emit only a boolean presence output. Ingestion is
+`continue-on-error`: a TestPulse outage cannot change product confidence, while
+the adapter adds an error annotation and workflow-summary failure record.
 
 ## Current evidence
 
@@ -148,17 +159,125 @@ overall workflow conclusion.
 
 Manual verification run
 [`30932432000`](https://github.com/Mohanad49/caldiy-qa-strategy/actions/runs/30932432000)
-confirmed `TESTPULSE_DATABASE_URL` by boolean presence only. The pinned action
-completed successfully for the core API report, repeated same-commit API report,
-once-merged E2E report, BDD report, and merged performance-gate report. Those
-inputs use the four declared suite names; the two API ingestions intentionally
-share `caldiy-api-v2` to create same-commit history rather than a fifth suite.
+confirmed `TESTPULSE_DATABASE_URL` by boolean presence only, but it did **not**
+prove all five ingestion calls. The once-merged E2E input succeeded as TestPulse
+run 163. Core API, repeated API, BDD, and performance each failed before ingest:
+hosted `pipx` required `uv >= 0.9.17`, while those jobs had installed `uv 0.8.17`.
+Because reporting is deliberately non-blocking, the product gates kept their own
+conclusions and the TestPulse action left error annotations and summaries. The
+earlier documentation incorrectly treated the continued steps as successful;
+this paragraph is the corrected audit record.
 
-The same run remains red overall because the browser-quality job enforces the
-known axe and hosted-Linux visual failures after evidence upload and BDD
-ingestion. TestPulse is downstream of that product result. No database URL was
-printed or copied, no CI badge is added, and no green workflow conclusion is
-claimed.
+Push audit run
+[`30960025297`](https://github.com/Mohanad49/caldiy-qa-strategy/actions/runs/30960025297)
+raised the pinned CI `uv` version to `0.12.1`. Its live API suite passed 13/13,
+all four Playwright shards merged to 15/15, and BDD passed 3/3. The corresponding
+TestPulse ingestions succeeded as runs 165 (`caldiy-api-v2`), 166
+(`caldiy-bdd`), and 167 (`caldiy-e2e`). The same run retained the expected axe
+failure and generated the inspected hosted-Linux visual actuals used to create
+platform-specific baselines. No database URL was printed or copied.
+
+Run
+[`30961268898`](https://github.com/Mohanad49/caldiy-qa-strategy/actions/runs/30961268898)
+then proved the repository-owned, exact-commit TestPulse adapter: API, merged
+E2E and BDD were stored as runs 168, 169 and 170. Desktop visual comparison
+passed; mobile differed by 24 dynamic-date pixels, which exposed that masking
+individual calendar children was not stable across changing child counts.
+
+Run
+[`30962249720`](https://github.com/Mohanad49/caldiy-qa-strategy/actions/runs/30962249720)
+proved the fixed-section approach was still too broad on mobile: its retained
+actual was a full-page magenta mask. That artifact was explicitly rejected and
+never imported. The failure led to runtime guards that reject metadata coverage
+or at least 75% viewport coverage, plus a mobile selector for the inner calendar
+box only. This is a test-harness correction, not a product finding.
+
+On explicit `ubuntu-24.04`, run
+[`30963385880`](https://github.com/Mohanad49/caldiy-qa-strategy/actions/runs/30963385880)
+passed the desktop comparison and produced one meaningful mobile actual: event
+metadata, timezone, time-format controls and slot buttons remained compared;
+only the dynamic calendar rectangle was masked. That inspected mobile image was
+imported with the guarded partial importer while the already-passing desktop
+baseline was preserved. API, merged E2E and BDD again passed and entered
+TestPulse as runs 174, 175 and 176. An ordinary hosted comparison after that
+import is the acceptance boundary, not the import itself.
+
+Ordinary push run
+[`30964383774`](https://github.com/Mohanad49/caldiy-qa-strategy/actions/runs/30964383774)
+closed that boundary on commit
+`01c6ab30cfb0a95daee258dfb007c9346095f033`. Its retained visual JUnit contains
+two tests with zero failures: both 1440×900 and 390×844 passed without update
+mode. BDD passed 3/3, the API suite passed 13/13, all four Playwright shards and
+the once-merged 15-test report passed, and the merged Allure artifact succeeded.
+The browser-quality job failed only when its final enforcement step propagated
+the unchanged one-pass/two-fail axe report.
+
+That run also surfaced a hosted-runner deprecation annotation for the
+TestPulse adapter's old Node 20 `setup-python` action. The repository repinned
+the adapter to official `setup-python` `v7.0.0` commit
+`5fda3b95a4ea91299a34e894583c3862153e4b97`, whose action metadata declares
+Node 24, and repository validation now enforces that exact revision.
+
+Push run
+[`30965349762`](https://github.com/Mohanad49/caldiy-qa-strategy/actions/runs/30965349762)
+then proved that replacement on commit
+`97eee19bcca18b1c6fc58efa72428ce19a6ec6d8`. API, BDD and once-merged E2E
+ingestion all succeeded through the repository-owned adapter, with no Node 20
+deprecation annotation. The API suite, four shards, merge, visuals and Allure
+again passed; final workflow failure remained isolated to the unchanged axe
+report and its enforcement step.
+
+Final manual/nightly-equivalent release run
+[`30966169388`](https://github.com/Mohanad49/caldiy-qa-strategy/actions/runs/30966169388)
+then exercised that exact commit through every hosted tier on explicit
+`ubuntu-24.04`. Core and repeated API reports each contain 13 tests with zero
+failures, the once-merged E2E report contains 15 tests with zero failures, BDD
+contains three tests with zero failures, the pinned-oracle timezone report
+contains 14 tests with zero failures, and the visual report contains two tests
+with zero failures. Accessibility contains three tests and two failures. All
+four shards, the complete contract check, current-main advisory, k6 gates and
+merged Allure report succeeded.
+
+The hosted availability gate observed 0/1,043 application errors and 427.503 ms
+p95 across its measured calls, under the existing 2,300 ms local-Docker gate;
+1,062 HTTP calls include warm-up and setup traffic. Booking throughput completed
+50/50 with zero application or cleanup errors and an informational 2,090.065 ms
+request p95. Contention produced one success, 19 expected conflicts and one
+persisted booking, with zero unexpected, persistence or cleanup errors. The
+merged performance JUnit contains ten tests with zero failures.
+
+The same run stored BDD as TestPulse run 183, core API as 184, merged E2E as
+185, repeated API as 186, and performance gates as 187. The current-public-main
+advisory still observed exact commit
+`8418db70c71e5364e6baf26275aafa10e6bc9bd7`: nine controlled operations were
+unchanged, nine changed and none was missing; both filed defect conditions were
+still reproduced. The workflow's only failing job was browser quality, whose
+final enforcement propagated the unchanged one-pass/two-fail axe result after
+BDD, visuals, evidence upload and TestPulse ingestion succeeded. All other 13
+jobs passed. Check runs carried only the two expected browser failure
+annotations and no action-runtime deprecation annotation.
+
+The raw logs do retain two upstream maintenance notices: the historical
+Cal.diy seed uses the Prisma `package.json#prisma` configuration deprecated for
+Prisma 7, and official `actions/download-artifact` `v8.0.1` emits Node's legacy
+`Buffer()` warning. Neither is hidden or treated as a product failure; both are
+covered by the monthly pin review, while changing the historical SUT solely to
+silence its warning remains out of scope.
+
+Database ingestion and public static export are separate boundaries. At this
+checkpoint the public TestPulse export was generated on 2026-08-04 and did not
+yet contain the private Cal.diy repository's run summaries. Publishing those
+summaries requires explicit owner approval or a refresh after this repository
+becomes public; successful ingestion is not misreported as an already-refreshed
+dashboard.
+
+No CI badge is shown: the complete workflow remains red for the enforced,
+unsuppressed accessibility findings even when infrastructure, functional,
+reporting and visual checks pass.
+
+Eligible inputs use the four declared suite names. Core and repeated API runs
+intentionally share `caldiy-api-v2` to create same-commit history rather than a
+fifth suite.
 
 `ENABLE_ALLURE_PAGES` remains absent, so Pages publication is disabled while
 the repository is private. The repository remains private.
@@ -202,10 +321,10 @@ documented 6,144 MB OOM fallback remains a real CI infrastructure failure; the
 workflow does not substitute API v1 or hosted Cal.com.
 
 The Phase 4 2,300 ms availability threshold was calibrated on the controlled
-amd64 Docker workstation. Nightly CI applies it as the existing local-Docker
-gate, but the first hosted-runner evidence must be reviewed before describing
-it as representative of that runner class. It remains explicitly not a
-production SLO.
+amd64 Docker workstation. Manual hosted-runner results are retained as separate
+environment evidence; they neither recalibrate that workstation gate nor make
+it representative of all GitHub runners. It remains explicitly not a production
+SLO.
 
 The historical snapshot has evidence-backed serious/critical accessibility
 findings. The CI accessibility gate keeps those failures red; Phase 5 does not

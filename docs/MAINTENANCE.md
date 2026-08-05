@@ -48,6 +48,11 @@ The CI `uv` pin is `0.12.1`. It replaced `0.8.17` after hosted-runner `pipx`
 began requiring `uv >= 0.9.17`; a real manual run exposed that incompatibility.
 Do not lower it without reproducing all five TestPulse ingestion calls.
 
+The TestPulse adapter uses `actions/setup-python` `v7.0.0` at immutable commit
+`5fda3b95a4ea91299a34e894583c3862153e4b97`. Its Node 24 action runtime replaced
+the deprecated Node 20 runtime surfaced by hosted-runner annotations. Repin only
+to an official immutable revision whose declared runtime is still supported.
+
 The repository-owned TestPulse adapter installs `testpulse-core[postgres]` from
 exact commit `2696d715e7b18f2ef029e291f37371d6b4bb01fb`. This closes a transitive
 pinning hole in the upstream action at that commit, which installs its package
@@ -60,19 +65,21 @@ and must never be echoed, copied into an artifact, or used by pull-request jobs.
 ## Visual baselines
 
 Chromium screenshots are stored separately for `darwin` and `linux`; text
-rasterization is platform-dependent. Calendar and timeslot grid sections are
-masked because their child count and geometry depend on the server's real date.
-The mobile layout moves the calendar beneath its metadata grid area, so the
-mask selects the nearest calendar ancestor containing day cells while leaving
-event metadata visible. The responsive shell, controls, borders, and branding
-remain compared.
+rasterization is platform-dependent. Desktop calendar and timeslot grid sections
+are masked because their child count and geometry depend on the server's real
+date. Mobile masks only the inner calendar box beneath its metadata grid area;
+the auto-margin wrapper and below-the-fold slots are excluded. Runtime guards
+reject masks that cover the metadata center or 75% of the viewport. The
+responsive shell, metadata, time controls, borders, and branding remain compared.
 
 Run the guarded update on the platform whose baseline is changing, inspect both
 images, then rerun ordinary comparison mode at least once. A hosted-Linux actual
 may be imported only after inspecting its expected/actual/diff artifact with
 `make import-linux-snapshots SOURCE_DIR=... CONFIRM=caldiy-qa-strategy`; the next
-ordinary Linux CI comparison must pass. Never copy a baseline between platforms
-and call the result verified.
+ordinary Linux CI comparison must pass. A passing viewport has no failure actual,
+so the guarded importer preserves that existing baseline and imports only the
+failed viewport images present in the inspected artifact. Never copy a baseline
+between platforms and call the result verified.
 
 ## Recovery rules
 

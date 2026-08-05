@@ -17,7 +17,7 @@ and TestPulse evidence is recorded separately in `PHASE-5-CI.md`.
 | `make test-bdd` | 3/3 scenarios, 18/18 steps passed | 33.33 s | Booking, rescheduling and cancellation only |
 | `make test-timezones` | 14/14 passed | 89.92 s | Chromium with an independent pinned `zoneinfo` oracle |
 | `make test-a11y` | 1/3 passed, 2/3 failed | 28.75 s | Intentional red gate for serious or critical axe findings |
-| `pnpm run test:visual` | 2/2 passed | 14.05 s | Darwin Chromium comparison after a guarded baseline update |
+| `pnpm run test:visual` | 2/2 passed | 12.50 s | Darwin Chromium ordinary comparison after the guarded responsive-mask update |
 
 Durations come from the final local JUnit reports, except Cucumber's wall time,
 which comes from its final command summary. Reports and Allure input are ignored
@@ -100,8 +100,16 @@ in `docs/defects/README.md`.
 
 Committed Chromium baselines are exactly 1440×900 and 390×844 and are stored
 separately for Darwin and Linux because browser text rasterization is
-platform-dependent. The calendar and timeslot grid sections are masked as
+platform-dependent. Desktop calendar and timeslot grid sections are masked as
 fixed units because their child count and geometry vary with the server's real
-date; event metadata, controls, branding and responsive shell remain compared.
+date. On mobile, only the inner calendar box beneath the metadata grid area is
+masked; the auto-margin wrapper and below-the-fold timeslot grid are excluded.
+Before capture, the suite waits for metadata animation and the first day/time
+choices, rejects a mask that covers the metadata center, and rejects combined
+mask area at or above 75% of the viewport. Event metadata, time controls,
+branding and the responsive shell remain compared.
 An update is refused unless the caller supplies `CONFIRM=caldiy-qa-strategy`.
 The guarded Darwin update was inspected and an ordinary local comparison passed.
+After the separate Linux baseline was inspected and imported, hosted
+`ubuntu-24.04` run `30964383774` passed both ordinary comparisons. Its retained
+JUnit reports two tests and zero failures; no update mode ran in that proof.

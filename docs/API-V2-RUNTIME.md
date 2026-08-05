@@ -46,4 +46,9 @@ The API build remains local even after qualification. Failure of either permitte
 
 The monitor sampled all five containers every 30 seconds from zero through 600 seconds. Every sample was healthy, no restart count changed, and the measured peak was 1,508 MiB against the strict less-than-7-GiB gate of 7,168 MiB. A final smoke again passed the Phase 1 routes, Redis, `/health`, `/docs-json`, and authenticated `/v2/me` identity.
 
+The 2026-08-05 clean-room requalification repeated all 21 samples with no
+restart or health failure and measured a 1,560 MiB peak against the same 7,168
+MiB ceiling. This second result is a reproducibility check, not a change to the
+accepted image or threshold.
+
 The detailed local sample log is regenerated at ignored `.cache/runtime-qualification/latest.txt`; it contains container names and memory readings but no credentials.

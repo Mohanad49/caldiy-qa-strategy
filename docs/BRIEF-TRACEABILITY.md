@@ -26,6 +26,7 @@ claims; they do not imply access to current hosted Cal.com.
 | Phase 5 flake policy | No retries or quarantines; evidence, owner, expiry and same-commit return criteria are documented | Accessibility violations, conflicts and infrastructure incidents cannot be relabeled as flakes merely because a rerun passes |
 | Phase 6 defects | Historical finding register, current-commit audit, duplicate searches, two professional reports and public issues [#29903](https://github.com/calcom/cal.diy/issues/29903) and [#29904](https://github.com/calcom/cal.diy/issues/29904) | Snapshot-only findings stay local; hosted Cal.com was not tested |
 | Cross-cutting constraints | Python owns API/oracle work; TypeScript owns browser work; shared JSON fixture boundary; small unsquashed commits | No test depends on another test's state; retained evidence is ignored locally or stored as bounded CI artifacts |
+| Portfolio publication | README case study, Mermaid architecture, TestPulse ingestion boundary and publicly verifiable upstream issues | No CI badge while the enforced historical-snapshot accessibility gate is red; the public TestPulse export and Allure Pages are explicit owner-controlled publication steps |
 
 ## Public-release remainder
 
