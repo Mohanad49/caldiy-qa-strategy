@@ -1,0 +1,37 @@
+name: Keep scheduled QA active
+
+on:
+  schedule:
+    - cron: "23 4 1 * *"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Exercise the empty-commit path even when the repository is recent.
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Reset GitHub's public scheduled-workflow inactivity timer
+        shell: bash
+        run: |
+          last_commit="$(git log -1 --format=%ct)"
+          age_days=$(( ( $(date +%s) - last_commit ) / 86400 ))
+          echo "Last repository activity was ${age_days} day(s) ago."
+
+          if [[ "${{ inputs.force }}" != "true" && "$age_days" -lt 45 ]]; then
+            echo "No keepalive commit is required."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -m "chore: keep scheduled QA active"
+          git push origin HEAD:main

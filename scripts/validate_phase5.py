@@ -10,6 +10,7 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 QUALITY = ROOT / ".github/workflows/validate.yml"
 PAGES = ROOT / ".github/workflows/pages.yml"
+KEEPALIVE = ROOT / ".github/workflows/keepalive.yml"
 ACTION = ROOT / ".github/actions/api-image/action.yml"
 TESTPULSE_ACTION = ROOT / ".github/actions/testpulse-ingest/action.yml"
 
@@ -40,6 +41,7 @@ def main() -> None:
         ".github/actions/testpulse-ingest/action.yml",
         ".github/workflows/validate.yml",
         ".github/workflows/pages.yml",
+        ".github/workflows/keepalive.yml",
         "docs/PHASE-5-CI.md",
         "docs/MAINTENANCE.md",
         "docs/PUBLIC-RELEASE.md",
@@ -57,17 +59,19 @@ def main() -> None:
         require(path.is_file() and path.stat().st_size > 0, f"missing or empty {relative}")
 
     parsed_documents: dict[Path, object] = {}
-    for path in (QUALITY, PAGES, ACTION, TESTPULSE_ACTION):
+    for path in (QUALITY, PAGES, KEEPALIVE, ACTION, TESTPULSE_ACTION):
         parsed = yaml.safe_load(read(path))
         require(isinstance(parsed, dict), f"{path.name} is not a YAML mapping")
         parsed_documents[path] = parsed
 
     quality = read(QUALITY)
     pages = read(PAGES)
+    keepalive = read(KEEPALIVE)
     action = read(ACTION)
     testpulse_action = read(TESTPULSE_ACTION)
     validate_action_pins(quality, "quality workflow")
     validate_action_pins(pages, "Pages workflow")
+    validate_action_pins(keepalive, "keepalive workflow")
     validate_action_pins(action, "API composite action")
     validate_action_pins(testpulse_action, "TestPulse composite action")
     runtime_helper = (
@@ -120,6 +124,22 @@ def main() -> None:
     deploy_job = pages_jobs.get("deploy")
     require(isinstance(deploy_job, dict), "Pages deploy job is malformed")
     require(deploy_job.get("timeout-minutes") == 15, "Pages deploy timeout changed")
+
+    keepalive_document = parsed_documents[KEEPALIVE]
+    require(isinstance(keepalive_document, dict), "keepalive workflow is not a mapping")
+    keepalive_jobs = keepalive_document.get("jobs")
+    require(isinstance(keepalive_jobs, dict), "keepalive workflow has no jobs mapping")
+    keepalive_job = keepalive_jobs.get("keepalive")
+    require(isinstance(keepalive_job, dict), "keepalive job is malformed")
+    require(keepalive_job.get("timeout-minutes") == 5, "keepalive timeout changed")
+    for contract in (
+        'cron: "23 4 1 * *"',
+        "contents: write",
+        '"$age_days" -lt 45',
+        "git commit --allow-empty",
+        "git push origin HEAD:main",
+    ):
+        require(contract in keepalive, f"scheduled-workflow keepalive contract missing: {contract}")
 
     for trigger in ("pull_request:", "push:", "schedule:", "workflow_dispatch:"):
         require(trigger in quality, f"tiered workflow trigger missing: {trigger}")

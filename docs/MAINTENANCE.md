@@ -18,6 +18,14 @@ failure is triaged into one of three buckets before changing a test:
 The original failing artifact is retained. Product assertions are not retried
 into green, and current-main drift never changes the controlled SUT result.
 
+[GitHub disables scheduled workflows](https://docs.github.com/en/enterprise-cloud@latest/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule)
+in public repositories after 60 days with no repository activity. The monthly
+`Keep scheduled QA active` workflow checks the last commit and creates an empty
+bot commit only after 45 quiet days. Its token has `contents: write` and no
+broader permission; normal QA workflows stay read-only. This deliberately small
+history cost keeps nightly evidence from silently stopping on a stable portfolio
+repository.
+
 ## Dependency review
 
 Review pins monthly and after a GitHub runner deprecation notice. Update one
@@ -52,8 +60,10 @@ and must never be echoed, copied into an artifact, or used by pull-request jobs.
 Chromium screenshots are stored separately for `darwin` and `linux`; text
 rasterization is platform-dependent. Calendar and timeslot grid sections are
 masked because their child count and geometry depend on the server's real date.
-The event metadata, responsive shell, controls, borders, and branding remain
-visible to comparison.
+The mobile layout moves the calendar beneath its metadata grid area, so the
+mask selects the nearest calendar ancestor containing day cells while leaving
+event metadata visible. The responsive shell, controls, borders, and branding
+remain compared.
 
 Run the guarded update on the platform whose baseline is changing, inspect both
 images, then rerun ordinary comparison mode at least once. A hosted-Linux actual

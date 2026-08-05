@@ -11,6 +11,8 @@ Cal.diy `v6.2.0`, not current hosted Cal.com.
 - Confirm `ENABLE_ALLURE_PAGES` is absent while the repository is private.
 - Confirm no API v2 image or image archive exists in Packages or workflow
   artifacts.
+- Confirm the monthly keepalive workflow is enabled so GitHub does not disable
+  scheduled QA after a long period without public-repository activity.
 - Review `README.md`, `DECISIONS.md`, both public defect links, and the explicit
   historical/current/hosted product boundaries.
 
