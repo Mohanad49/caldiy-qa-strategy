@@ -145,7 +145,7 @@ def main() -> None:
     require(isinstance(keepalive_job, dict), "keepalive job is malformed")
     require(keepalive_job.get("timeout-minutes") == 5, "keepalive timeout changed")
     for contract in (
-        'cron: "23 4 1 * *"',
+        'cron: "23 4 * * 1"',
         "contents: write",
         '"$age_days" -lt 45',
         "git commit --allow-empty",

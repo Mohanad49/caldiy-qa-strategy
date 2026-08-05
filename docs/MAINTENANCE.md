@@ -19,11 +19,13 @@ The original failing artifact is retained. Product assertions are not retried
 into green, and current-main drift never changes the controlled SUT result.
 
 [GitHub disables scheduled workflows](https://docs.github.com/en/enterprise-cloud@latest/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule)
-in public repositories after 60 days with no repository activity. The monthly
+in public repositories after 60 days with no repository activity. The weekly
 `Keep scheduled QA active` workflow checks the last commit and creates an empty
-bot commit only after 45 quiet days. Its token has `contents: write` and no
-broader permission; normal QA workflows stay read-only. This deliberately small
-history cost keeps nightly evidence from silently stopping on a stable portfolio
+bot commit only after 45 quiet days. A seven-day maximum check interval ensures
+the next eligible run occurs by day 52 rather than allowing a monthly calendar
+gap to cross the 60-day cutoff. Its token has `contents: write` and no broader
+permission; normal QA workflows stay read-only. This deliberately small history
+cost keeps nightly evidence from silently stopping on a stable portfolio
 repository.
 
 ## Dependency review
