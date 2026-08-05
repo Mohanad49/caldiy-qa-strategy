@@ -98,6 +98,7 @@ for path, dimensions in expected_snapshots.items():
 
 visual_source = read("tests/visual/booking.visual.spec.ts")
 expected_masks = (
+    "xpath=ancestor::div[contains(concat(' ', normalize-space(@class), ' '), ' mt-auto ')][1]",
     ':scope > [class*="[grid-area:main]"]',
     ':scope > [class*="[grid-area:timeslots]"]',
 )

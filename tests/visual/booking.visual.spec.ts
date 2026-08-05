@@ -32,10 +32,18 @@ test.describe("mobile booking visual", () => {
 
 function dynamicCalendarRegions(page: import("@playwright/test").Page): import("@playwright/test").Locator[] {
   // Calendar cells and available-slot counts depend on the server's real date.
-  // Mask their fixed grid sections as units so changing child counts cannot
-  // move mask boundaries while the surrounding responsive shell stays tested.
+  // Desktop uses main/timeslots grid areas. Mobile moves the calendar beneath
+  // meta and time choices into main, so select the nearest stable calendar
+  // wrapper there without masking event metadata.
   const booker = page.getByTestId("booker-container");
+  const responsiveCalendar = booker
+    .locator(':scope > [class*="[grid-area:meta]"]')
+    .getByTestId("selected-month-label")
+    .locator(
+      "xpath=ancestor::div[contains(concat(' ', normalize-space(@class), ' '), ' mt-auto ')][1]"
+    );
   return [
+    responsiveCalendar,
     booker.locator(':scope > [class*="[grid-area:main]"]'),
     booker.locator(':scope > [class*="[grid-area:timeslots]"]')
   ];
