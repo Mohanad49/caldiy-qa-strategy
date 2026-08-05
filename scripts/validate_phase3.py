@@ -169,6 +169,8 @@ for import_contract in (
     'expected="caldiy-qa-strategy"',
     '"${CONFIRM:-}" != "${expected}"',
     'public-booking-${viewport}-actual.png',
+    "preserving its passing Linux baseline",
+    '"${imported_count}" -eq 0',
     "scripts/validate_phase3.py",
 ):
     if import_contract not in linux_import:
