@@ -98,14 +98,29 @@ for path, dimensions in expected_snapshots.items():
 
 visual_source = read("tests/visual/booking.visual.spec.ts")
 expected_masks = (
+    'dynamicCalendarRegions(page, "desktop")',
+    'dynamicCalendarRegions(page, "mobile")',
     "xpath=ancestor::div[contains(concat(' ', normalize-space(@class), ' '), ' mt-auto ')][1]",
+    '.locator(":scope > div")',
     ':scope > [class*="[grid-area:main]"]',
     ':scope > [class*="[grid-area:timeslots]"]',
+    'layout === "mobile"',
+    'covers the event metadata center',
+    'maskedArea / viewportArea >= 0.75',
+    'prepareVisualState(page)',
+    'getByTestId("time").first()',
+    'transition-duration: 0s !important',
 )
 for mask in expected_masks:
     if mask not in visual_source:
         fail(f"expected dynamic visual mask is missing: {mask}")
-visual_mask_body = visual_source.split("function dynamicCalendarRegions", maxsplit=1)[1]
+visual_mask_body = (
+    visual_source.split("function dynamicCalendarRegions", maxsplit=1)[1]
+    .split("async function prepareVisualState", maxsplit=1)[0]
+)
+mobile_branch = visual_mask_body.split('layout === "mobile"', maxsplit=1)[1].split(":", maxsplit=1)[0]
+if "responsiveCalendar" not in mobile_branch:
+    fail("mobile visual mask must contain only the responsive calendar branch")
 for unstable_child_mask in ('getByTestId("day")', 'getByTestId("time")'):
     if unstable_child_mask in visual_mask_body:
         fail(f"child-count-dependent visual mask returned: {unstable_child_mask}")
