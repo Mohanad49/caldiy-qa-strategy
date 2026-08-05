@@ -64,6 +64,18 @@ def main() -> None:
         require(isinstance(parsed, dict), f"{path.name} is not a YAML mapping")
         parsed_documents[path] = parsed
 
+    for workflow_path in (QUALITY, PAGES, KEEPALIVE):
+        workflow = read(workflow_path)
+        require("ubuntu-latest" not in workflow, f"{workflow_path.name} uses a moving runner alias")
+        jobs = parsed_documents[workflow_path].get("jobs")
+        require(isinstance(jobs, dict), f"{workflow_path.name} has no jobs mapping")
+        for job_name, job in jobs.items():
+            require(isinstance(job, dict), f"{workflow_path.name} job is malformed: {job_name}")
+            require(
+                job.get("runs-on") == "ubuntu-24.04",
+                f"{workflow_path.name} job is not pinned to ubuntu-24.04: {job_name}",
+            )
+
     quality = read(QUALITY)
     pages = read(PAGES)
     keepalive = read(KEEPALIVE)

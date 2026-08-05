@@ -22,7 +22,7 @@ env:
 jobs:
   validate:
     name: Repository contracts
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -48,7 +48,7 @@ jobs:
   prewarm_api:
     name: Prewarm private API v2 Buildx cache
     needs: validate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     outputs:
       heap_mb: ${{ steps.api_image.outputs.heap_mb }}
@@ -71,7 +71,7 @@ jobs:
   api:
     name: API smoke, contracts and suite
     needs: prewarm_api
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -156,7 +156,7 @@ jobs:
     name: Repeated same-commit API run
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     needs: [prewarm_api, api]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -221,7 +221,7 @@ jobs:
     name: Playwright shard ${{ matrix.shard }}/4
     if: github.event_name != 'pull_request'
     needs: prewarm_api
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 35
     strategy:
       fail-fast: false
@@ -292,7 +292,7 @@ jobs:
     name: Merge Playwright shards before reporting
     if: always() && !cancelled() && github.event_name != 'pull_request' && needs.e2e_shard.result != 'skipped'
     needs: e2e_shard
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -364,7 +364,7 @@ jobs:
     name: BDD, accessibility and visual gates
     if: github.event_name != 'pull_request'
     needs: prewarm_api
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -463,7 +463,7 @@ jobs:
     name: Full pinned-oracle timezone matrix
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     needs: [prewarm_api, api]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -522,7 +522,7 @@ jobs:
     name: Local-only k6 gates
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     needs: [prewarm_api, api]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -597,7 +597,7 @@ jobs:
     name: Current public Cal.diy contract and defect advisory
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     needs: validate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -642,7 +642,7 @@ jobs:
       (needs.api.result != 'skipped' || needs.merge_e2e.result != 'skipped' ||
       needs.browser_quality.result != 'skipped' || needs.timezone.result != 'skipped')
     needs: [api, api_repeat, merge_e2e, browser_quality, timezone]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

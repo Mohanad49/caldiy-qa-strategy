@@ -36,6 +36,8 @@ suite before merging.
 The high-risk pins are:
 
 - GitHub Actions and BuildKit SHAs;
+- the explicit GitHub-hosted runner image (`ubuntu-24.04`, never the moving
+  `ubuntu-latest` alias);
 - `uv`, Python, Node, pnpm, Playwright, Cucumber, axe, and Allure;
 - PostgreSQL, Redis, Mailpit, Node builder, and Cal.diy image digests;
 - k6 archive versions and hashes;
