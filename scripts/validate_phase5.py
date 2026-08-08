@@ -226,6 +226,15 @@ def main() -> None:
     require("allure-report" in quality, "merged Allure artifact is missing")
     require('"allure-commandline": "2.43.0"' in read("package.json"), "Allure CLI pin changed")
 
+    allure_script = read("scripts/generate-allure-report.sh")
+    for contract in (
+        'find "${results_dir}" -type f -print0',
+        'Conflicting Allure input basename',
+        'Allure staging lost results',
+        'Allure report lost results',
+    ):
+        require(contract in allure_script, f"Allure merge integrity contract missing: {contract}")
+
     api_build = read("scripts/ci-api-build.sh")
     disk_cleanup = read("scripts/ci-free-disk.sh")
     for contract in (
