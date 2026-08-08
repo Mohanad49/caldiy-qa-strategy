@@ -271,6 +271,19 @@ summaries requires explicit owner approval or a refresh after this repository
 becomes public; successful ingestion is not misreported as an already-refreshed
 dashboard.
 
+Mohanad explicitly approved publication on 2026-08-09. TestPulse CI run
+[`31284812109`](https://github.com/Mohanad49/testpulse/actions/runs/31284812109)
+passed backend, frontend, E2E/accessibility, Docker, migration, export, and
+deployment jobs. Its public index was generated at
+`2026-08-08T23:52:07.407444+00:00` and contains all four Cal.diy suite names.
+The public API, BDD, and E2E summaries include Cal.diy commit
+`1907d5997f1b252f0230d1e0ecb392c6cbdc65db` at 13/13, 3/3, and 15/15; the
+performance summary remains the latest scheduled 10/10 gate run because a push
+does not execute load tests. All four summaries report zero current failures,
+zero flaky or newly failing tests, and zero quarantine debt. A post-deployment
+scan found no database URL, token, private-key marker, local path, runner path,
+or seeded API-key pattern in the published JSON.
+
 No CI badge is shown: the complete workflow remains red for the enforced,
 unsuppressed accessibility findings even when infrastructure, functional,
 reporting and visual checks pass.

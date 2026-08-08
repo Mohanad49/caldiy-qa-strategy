@@ -636,3 +636,30 @@ implementation.
   `16de9d3eb7b37a4e40caeead4af521cb6b32356b3d556311e5afc3a33c8b2f47`,
   retained advisory paths from final manual run `30966169388`, and issue links
   #29903 and #29904.
+
+## Final publication decision
+
+Mohanad approved the following **Decision** statement on 2026-08-09. The
+surrounding context, consequences, and evidence record the authorized public
+reporting boundary; repository visibility remains a separate manual action.
+
+### D-036 — Publish TestPulse summaries before repository visibility
+
+- **Status:** Accepted
+- **Context:** Cal.diy reports were already stored in TestPulse, but its public
+  static export deliberately excluded private-source summaries until the owner
+  made an explicit publication choice.
+- **Decision:** I authorized publication of the four Cal.diy TestPulse suite
+  summaries while keeping the Cal.diy repository private until I change its
+  visibility manually.
+- **Rejected alternative:** Treat database ingestion as public publication, or
+  wait for the visibility change without recording whether private-source run
+  metadata could be exported.
+- **Consequences:** Suite names, commit identifiers, aggregate health, and test
+  result summaries are public. Source code and retained GitHub artifacts remain
+  private, and Allure Pages remains disabled until the separate public-release
+  checklist is executed.
+- **Evidence:** TestPulse publication run `31284812109`, public index timestamp
+  `2026-08-08T23:52:07.407444+00:00`, four visible Cal.diy suite files, and a
+  zero-match post-deployment leak scan for credentials, private keys, and local
+  filesystem paths.
