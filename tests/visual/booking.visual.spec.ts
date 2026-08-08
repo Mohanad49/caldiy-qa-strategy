@@ -47,9 +47,16 @@ async function dynamicCalendarRegions(
       "xpath=ancestor::div[contains(concat(' ', normalize-space(@class), ' '), ' mt-auto ')][1]"
     )
     .locator(":scope > div");
+  // The selected-day heading is derived from the server's first available day.
+  // It moves every day even when the responsive layout itself is unchanged, so
+  // mask only its date span and keep the time-format control and slots visible.
+  const responsiveSelectedDay = page
+    .getByRole("group", { name: "Time format" })
+    .filter({ visible: true })
+    .locator("xpath=../preceding-sibling::span[1]");
   const masks =
     layout === "mobile"
-      ? [responsiveCalendar]
+      ? [responsiveCalendar, responsiveSelectedDay]
       : [
           booker.locator(':scope > [class*="[grid-area:main]"]'),
           booker.locator(':scope > [class*="[grid-area:timeslots]"]')
@@ -63,8 +70,11 @@ async function dynamicCalendarRegions(
 
   let maskedArea = 0;
   for (const [index, mask] of masks.entries()) {
-    if ((await mask.count()) !== 1) {
-      throw new Error(`Visual mask ${layout}[${index}] must resolve to exactly one element`);
+    const maskCount = await mask.count();
+    if (maskCount !== 1) {
+      throw new Error(
+        `Visual mask ${layout}[${index}] must resolve to exactly one element; found ${maskCount}`
+      );
     }
     const box = await mask.boundingBox();
     if (!box) {
