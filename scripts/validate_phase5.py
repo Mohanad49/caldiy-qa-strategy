@@ -336,7 +336,7 @@ def main() -> None:
 
     for policy in (
         "zero quarantined tests",
-        "repository maintainer, mohanad",
+        "repository maintainer owns classification and quarantine",
         "expiry no later than 14 days",
         "three consecutive isolated runs of the same commit",
     ):

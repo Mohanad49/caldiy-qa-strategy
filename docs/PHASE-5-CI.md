@@ -301,7 +301,7 @@ The repository has zero quarantined tests and configures no product-test
 retries. A first failure is retained with its original trace, screenshot, video,
 response, or k6 evidence; a later passing run does not erase it.
 
-Classification and quarantine are the maintainer's call, not the runner's. A test
+The repository maintainer owns classification and quarantine. A test
 may be called flaky only after the same commit is rerun in an isolated
 environment and the evidence rules out a deterministic product failure. An
 infrastructure outage, a real booking conflict, an accessibility violation, or
