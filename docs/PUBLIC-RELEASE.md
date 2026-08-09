@@ -18,7 +18,13 @@ Cal.diy `v6.2.0`, not current hosted Cal.com.
   2026-08-09; publication run `31284812109` passed and all four stable suites
   were verified in the public export.
 - Confirm `TESTPULSE_DATABASE_URL` exists by name only; never display its value.
-- Confirm `ENABLE_ALLURE_PAGES` is absent while the repository is private.
+- Confirm `ENABLE_ALLURE_PAGES` is absent while the repository is private. The
+  repository became public on 2026-08-09, so this now reads the other way: the
+  variable was set to `true` afterwards, as its own step, and Pages was
+  published by running **Publish Allure to Pages** by hand against run
+  `31285129836`. Enabling it was never a side effect of the visibility change —
+  a report that appears because a repository flag moved is a report nobody
+  decided to publish.
 - Confirm no API v2 image or image archive exists in Packages or workflow
   artifacts.
 - Confirm the weekly keepalive workflow is enabled so GitHub does not disable

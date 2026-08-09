@@ -39,9 +39,16 @@ layer.
 | 5 | Tiered CI, four-shard merge, Allure artifacts and four stable TestPulse suites | Implemented |
 | 6 | Current-main triage, two professional defect reports and two public upstream issues | Implemented |
 
-Public Allure Pages deployment is prepared but intentionally disabled while the
-repository is private. It becomes an owner-controlled release step after the
-visibility change; see [the public-release checklist](docs/PUBLIC-RELEASE.md).
+The repository became public on 2026-08-09, and Allure Pages was enabled as the
+deliberate release step that followed rather than as a side effect of it:
+`ENABLE_ALLURE_PAGES` was set, then **Publish Allure to Pages** was run by hand
+against a named quality run. The report is live at
+**[mohanad49.github.io/caldiy-qa-strategy](https://mohanad49.github.io/caldiy-qa-strategy/)**,
+published from run
+[`31285129836`](https://github.com/Mohanad49/caldiy-qa-strategy/actions/runs/31285129836).
+It is a snapshot of that run, not a live view, and it is republished only by
+running that workflow again with a new run id — see
+[the public-release checklist](docs/PUBLIC-RELEASE.md).
 
 ## Final audit evidence
 
@@ -185,8 +192,8 @@ on 2026-08-09. TestPulse publication run
 [`31284812109`](https://github.com/Mohanad49/testpulse/actions/runs/31284812109)
 then deployed all four Cal.diy suite summaries; the published API, BDD, and E2E
 runs include verified Cal.diy commit `1907d5997f1b252f0230d1e0ecb392c6cbdc65db`.
-This reporting approval did not itself change repository visibility or enable
-Allure Pages.
+That decision covered reporting only; repository visibility and Allure Pages were
+changed separately and afterwards, each as its own step.
 
 - `caldiy-api-v2`
 - `caldiy-e2e`
