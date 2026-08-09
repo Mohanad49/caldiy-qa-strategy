@@ -271,7 +271,7 @@ summaries requires explicit owner approval or a refresh after this repository
 becomes public; successful ingestion is not misreported as an already-refreshed
 dashboard.
 
-Mohanad explicitly approved publication on 2026-08-09. TestPulse CI run
+I decided to publish on 2026-08-09. TestPulse CI run
 [`31284812109`](https://github.com/Mohanad49/testpulse/actions/runs/31284812109)
 passed backend, frontend, E2E/accessibility, Docker, migration, export, and
 deployment jobs. Its public index was generated at
@@ -301,7 +301,7 @@ The repository has zero quarantined tests and configures no product-test
 retries. A first failure is retained with its original trace, screenshot, video,
 response, or k6 evidence; a later passing run does not erase it.
 
-The repository maintainer, Mohanad, owns classification and quarantine. A test
+Classification and quarantine are the maintainer's call, not the runner's. A test
 may be called flaky only after the same commit is rerun in an isolated
 environment and the evidence rules out a deterministic product failure. An
 infrastructure outage, a real booking conflict, an accessibility violation, or

@@ -13,10 +13,10 @@ Cal.diy `v6.2.0`, not current hosted Cal.com.
 - Confirm the latest run has no unsupported or deprecated action-runtime
   annotation.
 - Confirm TestPulse contains the five eligible release-run inputs. Do not
-  refresh its public static export from a private source repository unless the
-  owner explicitly approves publishing those run summaries. Mohanad granted
-  that approval on 2026-08-09; publication run `31284812109` passed and all four
-  stable suites were verified in the public export.
+  refresh its public static export from a private source repository without a
+  deliberate decision to publish those run summaries. I took that decision on
+  2026-08-09; publication run `31284812109` passed and all four stable suites
+  were verified in the public export.
 - Confirm `TESTPULSE_DATABASE_URL` exists by name only; never display its value.
 - Confirm `ENABLE_ALLURE_PAGES` is absent while the repository is private.
 - Confirm no API v2 image or image archive exists in Packages or workflow

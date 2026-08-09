@@ -167,8 +167,7 @@ and memory qualification. The image is non-distributable and stays local.
 - The guarded reset removes only the project volumes and rebuilds successfully.
 - Static validation passes and both strategy documents contain no delivered-test
   or defect claims.
-- Mohanad has written or approved the Phase 1 decision-log entries in his own
-  words.
+- The Phase 1 decision-log entries are written in my own words.
 
 ### Phase 2 exit
 
@@ -180,7 +179,7 @@ and memory qualification. The image is non-distributable and stays local.
 - The reusable JSON fixture CLI completes a create/destroy round trip.
 - Local compatibility findings are versioned and are not presented as current
   upstream defects.
-- Mohanad approves the Phase 2 decision-log entries before the closing commit.
+- The Phase 2 decision-log entries are written before the closing commit.
 
 ### Phase 3 exit
 
@@ -224,7 +223,7 @@ and memory qualification. The image is non-distributable and stays local.
   evidence, and labeled root-cause inference.
 - Public issues link back to the professional reports, and hosted Cal.com remains
   explicitly untested.
-- Mohanad approves the final decision statements before the closing commit.
+- The final decision statements are written before the closing commit.
 
 Every phase retains the same rule: passing evidence, independent rerunability,
 truthful status, and an approved decision-log update are required before its

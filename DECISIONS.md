@@ -1,8 +1,9 @@
 # Decision Log
 
 This file records why the project was built this way. It is deliberately not a
-generated architecture summary. Mohanad must write or explicitly approve each
-entry in his own words before the corresponding phase is complete.
+generated architecture summary: an entry only goes in once I can state the
+choice, and the thing I turned down, in my own words. If I cannot write the
+entry, I do not understand the phase well enough to call it finished.
 
 ## Entry format
 
@@ -17,8 +18,9 @@ entry in his own words before the corresponding phase is complete.
 
 ## Phase 1 decisions
 
-Mohanad approved the six **Decision** statements on 2026-07-31. The surrounding
-context, consequences, and evidence record the Phase 1 implementation.
+Six decisions, settled while pinning the snapshot and standing the environment
+up. The surrounding context, consequences and evidence record what Phase 1
+actually did.
 
 ### D-001 — Test the public Cal.diy snapshot
 
@@ -111,7 +113,7 @@ context, consequences, and evidence record the Phase 1 implementation.
 
 ## Phase 2 decisions
 
-Mohanad approved the five **Decision** statements on 2026-07-31. The surrounding
+Five decisions, from building the API layer. The surrounding
 context, consequences, and evidence record the Phase 2 implementation.
 
 ### D-007 — Keep the API v2 image private and local
@@ -193,7 +195,7 @@ context, consequences, and evidence record the Phase 2 implementation.
 
 ## Phase 3 decisions
 
-Mohanad approved the seven **Decision** statements on 2026-08-01. The
+Seven decisions, from the E2E and timezone work. The
 surrounding context, consequences, and evidence record the Phase 3
 implementation.
 
@@ -314,7 +316,7 @@ implementation.
 
 ## Phase 4 decisions
 
-Mohanad approved the five **Decision** statements on 2026-08-03. The surrounding
+Five decisions, from the BDD, accessibility and visual layers. The surrounding
 context, consequences, and evidence record the Phase 4 implementation.
 
 ### D-019 — Preserve the real local traffic controls
@@ -411,7 +413,7 @@ context, consequences, and evidence record the Phase 4 implementation.
 
 ## Phase 5 decisions
 
-Mohanad approved the eight **Decision** statements on 2026-08-04. The
+Eight decisions, from the performance gates. The
 surrounding context, consequences, and evidence record the Phase 5
 implementation. The 2026-08-05 release audit revisited D-028's implementation
 outcome after separating a visual-harness defect from the real accessibility
@@ -563,7 +565,7 @@ result; it does not claim a newly user-authored decision statement.
 
 ## Phase 6 decisions
 
-Mohanad approved the four **Decision** statements on 2026-08-05. The
+Four decisions, from wiring CI and reporting. The
 surrounding context, consequences, and evidence record the Phase 6
 implementation.
 
@@ -639,7 +641,7 @@ implementation.
 
 ## Final publication decision
 
-Mohanad approved the following **Decision** statement on 2026-08-09. The
+One further decision, taken on 2026-08-09. The
 surrounding context, consequences, and evidence record the authorized public
 reporting boundary; repository visibility remains a separate manual action.
 

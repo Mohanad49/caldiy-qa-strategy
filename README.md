@@ -179,9 +179,9 @@ CI retains traces, screenshots and video on failure for 14 days and merged
 JUnit, k6, contract and Allure evidence for 30 days. Eligible `main` and
 manual/nightly runs feed four suite identities into TestPulse. Its
 [public dashboard](https://testpulse-eight.vercel.app) is a separately generated
-static export; private-source run summaries are not added to that export without
-explicit owner approval. Mohanad granted that approval on 2026-08-09. TestPulse
-publication run
+static export; run summaries from a private source repository are not added to
+that export without a deliberate decision to publish them. I took that decision
+on 2026-08-09. TestPulse publication run
 [`31284812109`](https://github.com/Mohanad49/testpulse/actions/runs/31284812109)
 then deployed all four Cal.diy suite summaries; the published API, BDD, and E2E
 runs include verified Cal.diy commit `1907d5997f1b252f0230d1e0ecb392c6cbdc65db`.
