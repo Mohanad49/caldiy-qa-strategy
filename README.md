@@ -47,7 +47,7 @@ against a named quality run. The report is live at
 published from run
 [`31285129836`](https://github.com/Mohanad49/caldiy-qa-strategy/actions/runs/31285129836).
 It is a snapshot of that run, not a live view, and it is republished only by
-running that workflow again with a new run id — see
+running that workflow again with a new run id, see
 [the public-release checklist](docs/PUBLIC-RELEASE.md).
 
 ## Final audit evidence
@@ -217,8 +217,8 @@ records nothing. Pull-request reports never enter longitudinal history.
 Phase 6 reproduced two Medium contract defects against exact current public
 Cal.diy source and searched issues and pull requests before filing:
 
-- [calcom/cal.diy#29903](https://github.com/calcom/cal.diy/issues/29903) — duplicate calendar operation IDs.
-- [calcom/cal.diy#29904](https://github.com/calcom/cal.diy/issues/29904) — default booking-field booleans documented as objects.
+- [calcom/cal.diy#29903](https://github.com/calcom/cal.diy/issues/29903), duplicate calendar operation IDs.
+- [calcom/cal.diy#29904](https://github.com/calcom/cal.diy/issues/29904), default booking-field booleans documented as objects.
 
 Fourteen other historical runtime/UI findings remain local because the required
 current runtime or UI evidence was not reproduced. The project does not turn a
