@@ -75,7 +75,17 @@ the historical snapshot, not a flaky-test waiver and not a reason to present the
 workflow as green. No CI badge is shown while the complete quality workflow has
 an enforced product failure.
 
-Manual/nightly-equivalent release run
+The schedule has two crons on purpose. The daily one runs only the upstream
+advisory, which reads current public Cal.diy and can return something new each
+day. The full suite runs weekly, because it executes against a pinned
+`CALDIY_SOURCE_SHA`: a deterministic suite against a frozen target has exactly
+one possible outcome, so running it nightly re-derived a known result and turned
+the enforced accessibility failure into a daily notification. Enforcing that
+failure only works while it stays legible, and a red result that arrives every
+morning stops being read. Both crons still run the repository contract checks,
+so the schedule continues to prove the suite is executable.
+
+Manual/weekly-equivalent release run
 [`30966169388`](https://github.com/Mohanad49/caldiy-qa-strategy/actions/runs/30966169388)
 repeated the complete hosted tier on exact test commit
 `97eee19bcca18b1c6fc58efa72428ce19a6ec6d8` and explicit `ubuntu-24.04`.
@@ -100,7 +110,7 @@ flowchart TD
     P --> S3[Playwright shard 3]
     P --> S4[Playwright shard 4]
     P --> B["BDD, axe and platform visuals"]
-    A --> N["Manual/nightly repeat API, timezone and k6"]
+    A --> N["Manual/weekly repeat API, timezone and k6"]
     S1 --> M["Require four blobs and merge once"]
     S2 --> M
     S3 --> M
@@ -184,7 +194,7 @@ removes retained historical rows.
 
 CI retains traces, screenshots and video on failure for 14 days and merged
 JUnit, k6, contract and Allure evidence for 30 days. Eligible `main` and
-manual/nightly runs feed four suite identities into TestPulse. Its
+manual/weekly runs feed four suite identities into TestPulse. Its
 [public dashboard](https://testpulse-eight.vercel.app) is a separately generated
 static export; run summaries from a private source repository are not added to
 that export without a deliberate decision to publish them. I took that decision
